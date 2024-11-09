@@ -1,0 +1,157 @@
+pageInfo:
+  title: Dashy
+  description: Welcome to your dashboard!
+  navLinks:
+    - title: GitHub
+      path: https://github.com/Lissy93/dashy
+    - title: Documentation
+      path: https://dashy.to/docs
+appConfig:
+  theme: colorful
+  layout: auto
+  iconSize: large
+sections:
+  - name: Linux Server
+    displayData:
+      sortBy: most-used
+      rows: 4
+      cols: 2
+      collapsed: false
+      hideForGuests: false
+    items:
+      - &ref_0
+        title: Sonarr
+        description: Manage TV Shows
+        icon: https://avatars.githubusercontent.com/u/1082903?s=200&v=4
+        url: http://192.168.2.72:8989/
+        id: 0_1191_sonarr
+      - &ref_1
+        title: Radarr
+        description: Manage Movies
+        icon: >-
+          https://static-00.iconduck.com/assets.00/radarr-icon-1845x2048-97le6lim.png
+        url: http://192.168.2.72:7878/
+        id: 1_1191_radarr
+      - &ref_2
+        title: Lidarr
+        description: Manage Music Albums
+        icon: https://avatars.githubusercontent.com/u/28475832?s=200&v=4
+        url: http://192.168.2.72:8686/
+        id: 2_1191_lidarr
+      - &ref_3
+        title: Prowlarr
+        description: Manage Indexers
+        icon: https://avatars.githubusercontent.com/u/73049443?s=200&v=4
+        url: http://192.168.2.72:9696/
+        id: 3_1191_prowlarr
+      - &ref_4
+        title: Plex
+        description: Media Library
+        icon: https://upload.wikimedia.org/wikipedia/commons/7/7b/Plex_logo_2022.svg
+        url: http://192.168.2.72:32400/web/index.html#!/
+        id: 4_1191_plex
+      - &ref_5
+        title: Qbittorrent
+        description: Torrent Download Client
+        icon: >-
+          https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/New_qBittorrent_Logo.svg/2048px-New_qBittorrent_Logo.svg.png
+        url: http://192.168.2.72:8080/
+        id: 5_1191_qbittorrent
+      - &ref_6
+        title: SABnzbd
+        description: NZB Download Client
+        icon: https://avatars.githubusercontent.com/u/960698?s=280&v=4
+        url: http://192.168.2.72:8081/
+        id: 6_1191_sabnzbd
+      - &ref_7
+        title: Uptime Kuma
+        description: Monitor Containers
+        icon: https://uptime.kuma.pet/img/icon.svg
+        url: http://192.168.2.72:3001/
+        id: 7_1191_Uptime-Kuma
+    icon: >-
+      https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/UbuntuCoF.svg/2048px-UbuntuCoF.svg.png
+    filteredItems:
+      - *ref_0
+      - *ref_1
+      - *ref_2
+      - *ref_3
+      - *ref_4
+      - *ref_5
+      - *ref_6
+      - *ref_7 
+  - name: Statistics
+    icon: >-
+      https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSRQWn-5ZWZNO_3lDR6sOujufxMJOB4aeM9UA&s 
+    displayData:
+      sortBy: most-used
+      rows: 1
+      cols: 1
+      collapsed: false
+      hideForGuests: false
+    items: 
+      - &ref_0
+        title: Container Stats
+        description: Hardware Stats
+        icon: https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSRQWn-5ZWZNO_3lDR6sOujufxMJOB4aeM9UA&s
+        url: http://192.168.2.72:4040/
+        id: 0_1180_Container_Stats
+  - name: Usenet Stuff
+    icon: >-
+      https://b.thumbs.redditmedia.com/Flac-ySmslzY0SE583PNA42rFbcYxLt7hqgCeUrC11s.png
+    displayData:
+      sortBy: most-used
+      rows: 3
+      cols: 1
+      collapsed: false
+      hideForGuests: false
+    items:
+      - &ref_7
+        title: NZBGeek
+        description: NZB Indexer
+        icon: https://rss.nzbgeek.info/geekloading.gif
+        url: https://nzbgeek.info/
+        id: 0_1180_nzbgeek
+      - &ref_8
+        title: Usenet Express
+        description: Usenet Provider
+        icon: 🚀
+        url: https://www.usenetexpress.com/
+        id: 1_1180_usenetexpress
+    filteredItems:
+      - *ref_7
+      - *ref_8
+  - name: Docker Stuff
+    icon: >-
+      https://w7.pngwing.com/pngs/719/226/png-transparent-docker-software-deployment-yaml-continuous-integration-sir-miscellaneous-command-area.png
+    displayData:
+      sortBy: most-used
+      rows: 3
+      cols: 1
+      collapsed: false
+      hideForGuests: false
+    items:
+      - &ref_9
+        title: Docker Hub
+        description: Get Docker Images
+        icon: >-
+          https://raw.githubusercontent.com/docker-library/docs/c350af05d3fac7b5c3f6327ac82fe4d990d8729c/docker/logo.png
+        url: https://hub.docker.com/
+        id: 0_1152_dockerhub
+      - &ref_10
+        title: Servarr Wiki
+        description: Get Container Help
+        icon: https://avatars.githubusercontent.com/u/57051827?s=280&v=4
+        url: https://wiki.servarr.com/
+        id: 1_1152_servarrwiki
+      - &ref_11
+        title: LinuxServer Wiki
+        description: Get Container Help
+        icon: >-
+          https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSh7q-tSKgz5Q41C_ImBtcuCZbjOLfYiZ9ktw&s
+        url: https://docs.linuxserver.io/
+        id: 2_1152_linuxserverwiki
+    filteredItems:
+      - *ref_9
+      - *ref_10
+      - *ref_11
