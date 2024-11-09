@@ -1,0 +1,273 @@
+services:
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    # network_mode: "service:gluetun"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - UMASK=002
+      - TZ=America/Toronto
+
+    volumes:
+      - /home/levi/Y-arr/config/sonarr-config:/config
+      - /home/levi/Y-arr/data/media:/media
+    ports:
+      - "8989:8989"
+    restart: unless-stopped
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    # network_mode: "service:gluetun"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - UMASK=002
+      - TZ=America/Toronto
+
+    volumes:
+      - /home/levi/Y-arr/config/radarr-config:/config
+      - /home/levi/Y-arr/data/media:/media
+    ports:
+      - "7878:7878"
+    restart: unless-stopped
+
+  lidarr:
+    image: lscr.io/linuxserver/lidarr:latest
+    container_name: lidarr
+    # network_mode: "service:gluetun"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - UMASK=002
+      - TZ=America/Toronto
+    volumes:
+      - /home/levi/Y-arr/config/lidarr-config:/config
+      - /home/levi/Y-arr/data/media:/media
+    ports:
+     - "8686:8686"
+    restart: unless-stopped
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:develop
+    container_name: prowlarr
+    environment:
+      - PUID=13006
+      - PGID=13000
+      - UMASK=002
+      - TZ=America/Toronto
+
+    volumes:
+      - /home/levi/Y-arr/config/prowlarr-config:/config
+    ports:
+      - "9696:9696"
+    restart: unless-stopped
+
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_HTML=${LOG_HTML:-false}
+      - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
+      - TZ=America/Toronto
+
+    ports:
+      - "8191:8191"
+    restart: unless-stopped
+
+  plex:
+    image: lscr.io/linuxserver/plex:latest
+    container_name: plex
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - VERSION=docker
+      - PLEX_CLAIM=
+    volumes:
+      - /home/levi/Y-arr/config/plex-config:/config
+      - /home/levi/Y-arr/data/media:/media
+    restart: unless-stopped
+
+  qbittorrent:
+   image: lscr.io/linuxserver/qbittorrent:latest
+   container_name: qbittorrent
+   network_mode: "service:gluetun"
+   environment:
+     - PUID=1000
+     - PGID=1000
+     - UMASK=002
+     - TZ=America/Toronto
+   
+     - WEBUI_PORT=8080
+   volumes:
+     - /home/levi/Y-arr/config/qbittorrent-config:/config
+     - /home/levi/Y-arr/data/media:/media
+   # ports:
+   #   - "8080:8080"
+   #   - "6881:6881"
+   #   - "6881:6881/udp"
+   restart: unless-stopped
+
+  sabnzbd:
+    image: lscr.io/linuxserver/sabnzbd:latest
+    container_name: sabnzbd
+    # network_mode: "service:gluetun"
+    environment:
+      - PUID=13011
+      - PGID=13000
+      - UMASK=002
+      - TZ=America/Toronto
+    volumes:
+      - /home/levi/Y-arr/data/media:/media
+      - /home/levi/Y-arr/config/sabnzbd-config:/config
+    ports:
+      - "8081:8081"
+    restart: unless-stopped
+
+  gluetun:
+    image: qmcgaw/gluetun
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      - 8888:8888/tcp # HTTP proxy
+      - 8388:8388/tcp # Shadowsocks
+      - 8388:8388/udp # Shadowsocks
+      - "8080:8080"   # QBittorrent
+      - "6881:6881"
+      - "6881:6881/udp"
+      # - "8081:8081"   # SABnzbd
+      # - "8686:8686"   # Lidarr
+      # - "7878:7878"   # Radarr
+      # - "8989:8989"   # Sonarr
+    volumes:
+      - /home/levi/Y-arr/config/gluetun-config:/gluetun
+    environment:
+      - VPN_SERVICE_PROVIDER=protonvpn
+      - VPN_TYPE=wireguard
+      # Wireguard:
+      - WIREGUARD_PRIVATE_KEY=uHaNDNlb8AudbTXTADzw0aXwsBUJLneyDsx+uY6ftEo=
+      - WIREGUARD_ADDRESSES=10.2.0.2/32
+      - SERVER_COUNTRIES=Canada
+      - TZ= America/Toronto
+      # Server list updater
+      - UPDATER_PERIOD=
+    restart: unless-stopped
+
+  dashy:
+    image: lissy93/dashy
+    container_name: Dashy
+    # Pass in config file below
+    volumes:
+      - /home/levi/Server/dashy_conf.yml:/app/user-data/conf.yml
+    ports:
+      - 4000:8080
+    environment:
+      - NODE_ENV=production
+      - UID=1000
+      - GID=1000
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'node', '/app/services/healthcheck']
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # code-server:
+  #   image: lscr.io/linuxserver/code-server:latest
+  #   container_name: code-server
+  #   environment:
+  #     - PUID=1000
+  #     - PGID=1000
+  #     - TZ=America/Toronto
+  #     # - PASSWORD=password #optional
+  #     # - HASHED_PASSWORD= #optional
+  #     - SUDO_PASSWORD=123 #optional
+  #     # - SUDO_PASSWORD_HASH= #optional
+  #     # - PROXY_DOMAIN=code-server.my.domain #optional
+  #     - DEFAULT_WORKSPACE= /home/levi/Server #optional
+  #   volumes:
+  #     - /home/levi/Y-arr/config/code-server-config/config:/config
+  #     - /home/levi/Server/
+  #   ports:
+  #     - 8443:8443
+  #   restart: unless-stopped
+
+  # grafana:
+  #   image: grafana/grafana
+  #   container_name: grafana
+  #   restart: unless-stopped
+  #   ports:
+  #     - '3000:3000'
+
+  wireguard:
+   image: lscr.io/linuxserver/wireguard:latest
+   container_name: wireguard
+   cap_add:
+     - NET_ADMIN
+     - SYS_MODULE #optional
+   environment:
+     - PUID=1000
+     - PGID=1000
+     - TZ=America/Toronto
+     - SERVERURL=192.168.2.72 #optional
+     - SERVERPORT=51820 #optional
+     - PEERS=1 #optional
+     - PEERDNS=1.1.1.1 #optional
+     - ALLOWEDIPS=0.0.0.0/0 #optional
+     - PERSISTENTKEEPALIVE_PEERS= #optional
+     - LOG_CONFS=true #optional
+   volumes:
+     - /home/levi/Y-arr/config/wireguard-config/config:/config
+     - /lib/modules:/lib/modules #optional
+   ports:
+     - 51820:51820/udp
+   sysctls:
+     - net.ipv4.conf.all.src_valid_mark=1
+   restart: unless-stopped
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: uptime-kuma
+    volumes:
+      - /home/levi/Y-arr/config/uptime-kuma-config:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 3001:3001
+    restart: always
+
+  # mc:
+  #   image: itzg/minecraft-server
+  #   container_name: Minecraft
+  #   tty: true
+  #   stdin_open: true
+  #   ports:
+  #    - "25565:25565"
+  #   environment:
+  #     EULA: "TRUE"
+  #   volumes:
+  #    - /home/levi/Y-arr/config/minecraft-server-config:/data
+
+  stats:
+    image: virtualzone/docker-container-stats
+    container_name: 'stats'
+    ports:
+      - '4040:8080'
+    environment:
+      STATS_UPDATE_INTERVAL: 60
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'
+      - '/home/docker/storage/stats/db:/opt/docker-stats/db'
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --schedule "0 0 4 * * *"
