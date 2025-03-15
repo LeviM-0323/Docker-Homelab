@@ -1,0 +1,10 @@
+*.env
+*.migrations
+media/
+config/
+'$RECYCLE.BIN'/
+Other/
+.Trash-1000/
+.vscode/
+found.000/
+.git/
