@@ -1,0 +1,293 @@
+services:
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    # network_mode: "service:gluetun"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - UMASK=002
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG}/sonarr-config:/config
+      - ${MEDIA}:/media
+    ports:
+      - "8989:8989"
+    restart: unless-stopped
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    # network_mode: "service:gluetun"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - UMASK=002
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG}/radarr-config:/config
+      - ${MEDIA}:/media
+    ports:
+      - "7878:7878"
+    restart: unless-stopped
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:develop
+    container_name: prowlarr
+    environment:
+      - PUID=13006
+      - PGID=13000
+      - UMASK=002
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG}/prowlarr-config:/config
+    ports:
+      - "9696:9696"
+    restart: unless-stopped
+
+  # flaresolverr:
+  #   image: ghcr.io/flaresolverr/flaresolverr:latest
+  #   container_name: flaresolverr
+  #   environment:
+  #     - LOG_LEVEL=${LOG_LEVEL:-info}
+  #     - LOG_HTML=${LOG_HTML:-false}
+  #     - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
+  #     - TZ=${TZ}
+  #   ports:
+  #     - "8191:8191"
+  #   restart: unless-stopped
+
+  plex:
+    image: lscr.io/linuxserver/plex:latest
+    container_name: plex
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - VERSION=docker
+      - PLEX_CLAIM=
+    volumes:
+      - ${CONFIG}/plex-config:/config
+      - ${MEDIA}:/media
+    restart: unless-stopped
+
+  # qbittorrent:
+  #  image: lscr.io/linuxserver/qbittorrent:latest
+  #  container_name: qbittorrent
+  #  # network_mode: "service:gluetun"
+  #  environment:
+  #    - PUID=1000
+  #    - PGID=1000
+  #    - UMASK=002
+  #    - TZ=${TZ}
+  #    - WEBUI_PORT=8080
+  #  volumes:
+  #    - ${CONFIG}/qbittorrent-config:/config
+  #    - ${MEDIA}:/media
+  #  # ports:
+  #  #   - "8080:8080"
+  #  #   - "6881:6881"
+  #  #   - "6881:6881/udp"
+  #  restart: unless-stopped
+
+  sabnzbd:
+    image: lscr.io/linuxserver/sabnzbd:latest
+    container_name: sabnzbd
+    # network_mode: "service:gluetun"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - UMASK=002
+      - TZ=${TZ}
+    volumes:
+      - ${MEDIA}:/media
+      - ${CONFIG}/sabnzbd-config:/config
+    ports:
+      - "8081:8081"
+    restart: unless-stopped
+
+  heimdall:
+    image: lscr.io/linuxserver/heimdall:latest
+    container_name: heimdall
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG}/heimdall-config:/config
+    ports:
+      - 81:80
+      - 444:443
+    restart: unless-stopped
+
+  wireguard:
+   image: lscr.io/linuxserver/wireguard:latest
+   container_name: wireguard
+   cap_add:
+     - NET_ADMIN
+   environment:
+     - PUID=1000
+     - PGID=1000
+     - TZ=${TZ}
+     - SERVERURL=auto #optional
+     - PEERS=3 #optional
+     - PEERDNS=auto #optional
+     - INTERNAL_SUBNET=10.13.13.0 #optional
+     - ALLOWEDIPS=0.0.0.0/0 #optional
+     - PERSISTENTKEEPALIVE_PEERS= #optional
+     - LOG_CONFS=true #optional
+   volumes:
+     - ${CONFIG}/wireguard-config:/config
+     - /lib/modules:/lib/modules #optional
+   ports:
+     - 51820:51820/udp
+   sysctls:
+     - net.ipv4.conf.all.src_valid_mark=1
+   restart: unless-stopped
+  
+  tautulli:
+    image: lscr.io/linuxserver/tautulli:latest
+    container_name: tautulli
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG}/tautulli-config:/config
+    ports:
+      - 8181:8181
+    restart: unless-stopped
+
+  # overseerr:
+  #   image: lscr.io/linuxserver/overseerr:latest
+  #   container_name: overseerr
+  #   environment:
+  #     - PUID=1000
+  #     - PGID=1000
+  #     - TZ=${TZ}
+  #   volumes:
+  #     - ${CONFIG}/overseerr-config:/config
+  #   ports:
+  #     - 5055:5055
+  #   restart: unless-stopped
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - TZ=${TZ}
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_NOTIFICATION_URL=discord://8aK38AwQ_uUjWzm4DHzSxDOfZe6zBSZ571PCvNNEl1KK8tcd8miF70h8y6NtpVdGsZYm@1323419622921338891
+      # - WATCHTOWER_NOTIFICATION_TEMPLATE="📢 Watchtower Update:\n{{range .}}🕒 {{.Time.Format \"2006-01-02 15:04:05\"}} | 🔹 {{.Level}} | 🔄 {{.Message}}\n{{end}}"
+    command: --schedule "0 0 4 * * *"
+
+  # makemkv:
+  #   image: jlesage/makemkv
+  #   container_name: makemkv
+  #   restart: unless-stopped
+  #   ports:
+  #     - "5800:5800"
+  #   volumes:
+  #     - ${CONFIG}/makemkv-config:/config
+  #     - ${MEDIA}:/storage
+  #     - ${MOVIES}:/output
+
+  grafana:
+    image: grafana/grafana-enterprise
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+     - '3000:3000'
+
+  doplarr:
+    image: lscr.io/linuxserver/doplarr:latest
+    container_name: doplarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+      - DISCORD__TOKEN=${DOPLARR_TOKEN}
+      - RADARR__API=${RADARR_TOKEN}
+      - RADARR__URL=http://192.168.2.21:7878
+      - SONARR__API=${SONARR_TOKEN}
+      - SONARR__URL=http://192.168.2.21:8989
+      - DISCORD__MAX_RESULTS=10 #optional
+      - DISCORD__REQUESTED_MSG_STYLE=:plain #optional
+      - OVERSEERR__DEFAULT_ID=295616908236029952 #optional
+      - PARTIAL_SEASONS=false #optional
+      - LOG_LEVEL=:info #optional
+    volumes:
+      - ${CONFIG}/doplarr-config:/config
+    restart: unless-stopped
+
+  nginx:
+    image: lscr.io/linuxserver/nginx:latest
+    container_name: nginx
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG}/nginx-config:/config
+    ports:
+      - 80:80
+      - 443:443
+    restart: unless-stopped
+    networks:
+      - db_network
+
+  mysql:
+    image: mysql
+    container_name: mysql
+    restart: unless-stopped
+    volumes:
+      - ${CONFIG}/mysql-config:/var/lib/mysql
+    networks:
+      - db_network
+
+  bot:
+    container_name: discord_bot
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+    build:
+      context:
+        ${CONFIG}/discord-bot
+    ports:
+      - 1234:1234
+    volumes:
+      - ${CONFIG}/discord-bot:/usr/src/app
+    working_dir: /usr/src/app
+    command: ["node", "src/index.js"]
+
+  muse:
+    image: ghcr.io/museofficial/muse:latest
+    container_name: music_bot
+    restart: unless-stopped
+    volumes:
+      - ${CONFIG}/muse-config:/data
+    environment:
+      - DISCORD_TOKEN=${MUSE_TOKEN}
+      - YOUTUBE_API_KEY=${YOUTUBE_KEY}
+      - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT}
+      - SPOTIFY_CLIENT_SECRET=${SPOTIFY_SECRET}
+
+  filezilla:
+    image: lscr.io/linuxserver/filezilla:latest
+    container_name: filezilla
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG}/filezilla-config:/config
+      - ${MEDIA}:/media
+    ports:
+      - 5000:3000
+      - 5001:3001
+    restart: unless-stopped
+
+networks:
+  db_network:
+    driver: bridge
