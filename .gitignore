@@ -7,5 +7,9 @@ Other/
 .Trash-1000/
 .vscode/
 found.000/
+<<<<<<< HEAD
 .git/
 docker-compose (Copy).yml
+=======
+.git/
+>>>>>>> 861741d5f5783af56adc0d63f19bdc28a70ac131
