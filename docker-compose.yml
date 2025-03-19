@@ -158,19 +158,6 @@ services:
       - 8181:8181
     restart: unless-stopped
 
-  # overseerr:
-  #   image: lscr.io/linuxserver/overseerr:latest
-  #   container_name: overseerr
-  #   environment:
-  #     - PUID=1000
-  #     - PGID=1000
-  #     - TZ=${TZ}
-  #   volumes:
-  #     - ${CONFIG}\overseerr-config:/config
-  #   ports:
-  #     - 5055:5055
-  #   restart: unless-stopped
-
   watchtower:
     image: containrrr/watchtower
     container_name: watchtower
@@ -183,24 +170,6 @@ services:
       # - WATCHTOWER_NOTIFICATION_TEMPLATE="📢 Watchtower Update:\n{{range .}}🕒 {{.Time.Format \"2006-01-02 15:04:05\"}} | 🔹 {{.Level}} | 🔄 {{.Message}}\n{{end}}"
     restart: unless-stopped
     command: --schedule "0 0 4 * * *"
-
-  # makemkv:
-  #   image: jlesage/makemkv
-  #   container_name: makemkv
-  #   restart: unless-stopped
-  #   ports:
-  #     - "5800:5800"
-  #   volumes:
-  #     - ${CONFIG}\makemkv-config:/config
-  #     - ${MEDIA}:/storage
-  #     - ${MOVIES}:/output
-
-  # grafana:
-  #   image: grafana/grafana-enterprise
-  #   container_name: grafana
-  #   restart: unless-stopped
-  #   ports:
-  #    - '3000:3000'
 
   doplarr:
     image: lscr.io/linuxserver/doplarr:latest
@@ -216,7 +185,6 @@ services:
       - SONARR__URL=http://192.168.2.21:8989
       - DISCORD__MAX_RESULTS=10 #optional
       - DISCORD__REQUESTED_MSG_STYLE=:plain #optional
-      - OVERSEERR__DEFAULT_ID=295616908236029952 #optional
       - PARTIAL_SEASONS=false #optional
       - LOG_LEVEL=:info #optional
     volumes:
@@ -277,21 +245,6 @@ services:
       - YOUTUBE_API_KEY=${YOUTUBE_KEY}
       - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT}
       - SPOTIFY_CLIENT_SECRET=${SPOTIFY_SECRET}
-
-  filezilla:
-    image: lscr.io/linuxserver/filezilla:latest
-    container_name: filezilla
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=${TZ}
-    volumes:
-      - ${CONFIG}\filezilla-config:/config
-      - ${MEDIA}:/media
-    ports:
-      - 5000:3000
-      - 5001:3001
-    restart: unless-stopped
 
 networks:
   db_network:
