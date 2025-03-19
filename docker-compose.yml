@@ -260,8 +260,6 @@ services:
     build:
       context:
         ${CONFIG}\discord-bot
-    ports:
-      - 1234:1234
     volumes:
       - ${CONFIG}\discord-bot:/usr/src/app
     working_dir: /usr/src/app
