@@ -120,30 +120,38 @@ services:
       - 444:443
     restart: unless-stopped
 
-  wireguard:
-   image: lscr.io/linuxserver/wireguard:latest
-   container_name: wireguard
-   cap_add:
-     - NET_ADMIN
-   environment:
-     - PUID=1000
-     - PGID=1000
-     - TZ=${TZ}
-     - SERVERURL=auto #optional
-     - PEERS=3 #optional
-     - PEERDNS=auto #optional
-     - INTERNAL_SUBNET=10.13.13.0 #optional
-     - ALLOWEDIPS=0.0.0.0/0 #optional
-     - PERSISTENTKEEPALIVE_PEERS= #optional
-     - LOG_CONFS=true #optional
-   volumes:
-     - ${CONFIG}\wireguard-config:/config
-     - /lib/modules:/lib/modules #optional
-   ports:
-     - 51820:51820/udp
-   sysctls:
-     - net.ipv4.conf.all.src_valid_mark=1
-   restart: unless-stopped
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TOKEN}
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TOKEN}
+
+  # wireguard:
+  #  image: lscr.io/linuxserver/wireguard:latest
+  #  container_name: wireguard
+  #  cap_add:
+  #    - NET_ADMIN
+  #  environment:
+  #    - PUID=1000
+  #    - PGID=1000
+  #    - TZ=${TZ}
+  #    - SERVERURL=auto #optional
+  #    - PEERS=3 #optional
+  #    - PEERDNS=auto #optional
+  #    - INTERNAL_SUBNET=10.13.13.0 #optional
+  #    - ALLOWEDIPS=0.0.0.0/0 #optional
+  #    - PERSISTENTKEEPALIVE_PEERS= #optional
+  #    - LOG_CONFS=true #optional
+  #  volumes:
+  #    - ${CONFIG}\wireguard-config:/config
+  #    - /lib/modules:/lib/modules #optional
+  #  ports:
+  #    - 51820:51820/udp
+  #  sysctls:
+  #    - net.ipv4.conf.all.src_valid_mark=1
+  #  restart: unless-stopped
   
   tautulli:
     image: lscr.io/linuxserver/tautulli:latest
@@ -189,6 +197,55 @@ services:
       - LOG_LEVEL=:info #optional
     volumes:
       - ${CONFIG}\doplarr-config:/config
+    restart: unless-stopped
+
+  # mc:
+  #   image: itzg/minecraft-server
+  #   container_name: minecraft-server
+  #   environment:
+  #     # Required
+  #     EULA: "true" 
+  #     TZ: "America/Toronto"
+  #     MEMORY: "2G"
+  #     # CurseForge Shit
+  #     TYPE: AUTO_CURSEFORGE
+  #     CF_API_KEY: ${CF_TOKEN}
+  #     CF_MODPACK_MANIFEST: /data/manifest.json
+  #     CF_SLUG: "custom"
+  #     # Server Configuaration
+  #     MOTD: | 
+  #             \u00A7k420 \u00A7r \u00A7eFUCKWITS SERVER UNITE (╯°□°)╯︵ ┻━┻ \u00A77\u00A7k420\u00A7r \u00A7k420\u00A7r 
+  #                     \u00A74MODDED \u00A75MINECRAFT \u00A76SERVER \u00A79LETSGOOOOOOOOOOOOO \u00A7r\u00A7k420
+  #     ICON: ./icon.png
+  #     SERVER_NAME: FUCKWITS SERVER UNITE (╯°□°)╯︵ ┻━┻
+  #     MAX_PLAYERS: 6
+  #     ENABLE_WHITELIST: "true"
+  #     WHITELIST: LeviM0323
+  #   ports:
+  #     - "25565:25565"
+  #   volumes:
+  #     - ${CONFIG}\minecraft-config:/data
+  #   stdin_open: true
+  #   tty: true
+  #   restart: unless-stopped
+
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:latest
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "82:80/tcp"
+      - "442:443/tcp"
+    environment:
+      TZ: 'America/Toronto'
+      FTLCONF_webserver_api_password: 123
+      FTLCONF_dns_listeningMode: 'all'
+    volumes:
+      - ${CONFIG}\pihole-config:/etc/pihole'
+    cap_add:
+      # Optional, if Pi-hole should get some more processing time
+      - SYS_NICE
     restart: unless-stopped
 
   nginx:
@@ -245,6 +302,17 @@ services:
       - YOUTUBE_API_KEY=${YOUTUBE_KEY}
       - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT}
       - SPOTIFY_CLIENT_SECRET=${SPOTIFY_SECRET}
+
+  pythonapp:
+    container_name: python_app
+    build:
+      context: ${CONFIG}\pythonapp-config
+      dockerfile: dockerfile
+    volumes:
+      - ${CONFIG}\pythonapp-config:/app
+    ports:
+      - "8501:8501"
+    restart: unless-stopped
 
 networks:
   db_network:
