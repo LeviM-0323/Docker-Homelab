@@ -209,7 +209,7 @@ services:
   #     MEMORY: "2G"
   #     # CurseForge Shit
   #     TYPE: AUTO_CURSEFORGE
-  #     CF_API_KEY: ${CF_TOKEN}
+  #     CF_API_KEY: ${CURSEFORGE_TOKEN}
   #     CF_MODPACK_MANIFEST: /data/manifest.json
   #     CF_SLUG: "custom"
   #     # Server Configuaration
