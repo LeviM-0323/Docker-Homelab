@@ -305,6 +305,8 @@ services:
 
   pythonapp:
     container_name: python_app
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
     build:
       context: ${CONFIG}\pythonapp-config\Python-Projects
       dockerfile: dockerfile
