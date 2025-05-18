@@ -292,7 +292,7 @@ services:
     command: ["node", "src/index.js"]
 
   muse:
-    image: ghcr.io/museofficial/muse:latest
+    image: ghcr.io/museofficial/muse:pr-1256
     container_name: music_bot
     restart: unless-stopped
     volumes:
