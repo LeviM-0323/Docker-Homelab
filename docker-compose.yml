@@ -112,7 +112,7 @@ services:
     environment:
       PUID: 1000
       PGID: 1000
-      HOMEPAGE_ALLOWED_HOSTS: 
+      HOMEPAGE_ALLOWED_HOSTS: "*"
     ports:
       - 3000:3000
     volumes:
@@ -296,7 +296,7 @@ services:
     command: ["node", "src/index.js"]
 
   muse:
-    image: ghcr.io/museofficial/muse:pr-1256
+    image: ghcr.io/museofficial/muse:latest
     container_name: music_bot
     restart: unless-stopped
     volumes:
