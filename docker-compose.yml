@@ -106,18 +106,18 @@ services:
       - "8081:8081"
     restart: unless-stopped
 
-  heimdall:
-    image: lscr.io/linuxserver/heimdall:latest
-    container_name: heimdall
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=${TZ}
-    volumes:
-      - ${CONFIG}\heimdall-config:/config
+      HOMEPAGE_ALLOWED_HOSTS: gethomepage.dev # required, may need port. See gethomepage.dev/installation/#homepage_allowed_hosts
+      PUID: 1000
+      PGID: 1000
     ports:
-      - 81:80
-      - 444:443
+      - 3000:3000
+    volumes:
+      - ${CONFIG}\homepage-config:/app/config 
+      - ${CONFIG}\homepage-config\images:/app/public/images # optional, for images 
     restart: unless-stopped
 
   cloudflared:
@@ -171,10 +171,14 @@ services:
     container_name: watchtower
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 8001:8080
     environment:
       - TZ=${TZ}
       - WATCHTOWER_CLEANUP=true
       - WATCHTOWER_NOTIFICATION_URL=discord://8aK38AwQ_uUjWzm4DHzSxDOfZe6zBSZ571PCvNNEl1KK8tcd8miF70h8y6NtpVdGsZYm@1323419622921338891
+      - WATCHTOWER_HTTP_API_METRICS=true
+      - WATCHTOWER_HTTP_API_TOKEN=${WATCHTOWER_TOKEN}
       # - WATCHTOWER_NOTIFICATION_TEMPLATE="📢 Watchtower Update:\n{{range .}}🕒 {{.Time.Format \"2006-01-02 15:04:05\"}} | 🔹 {{.Level}} | 🔄 {{.Message}}\n{{end}}"
     restart: unless-stopped
     command: --schedule "0 0 4 * * *"
