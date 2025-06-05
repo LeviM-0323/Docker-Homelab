@@ -212,14 +212,14 @@ services:
       TZ: "America/Toronto"
       MEMORY: "2G"
       # CurseForge Shit
-      TYPE: AUTO_CURSEFORGE
-      CF_API_KEY: ${CURSEFORGE_TOKEN}
-      CF_MODPACK_MANIFEST: /data/manifest.json
-      CF_SLUG: "custom"
+      # TYPE: AUTO_CURSEFORGE
+      # CF_API_KEY: ${CURSEFORGE_TOKEN}
+      # CF_MODPACK_MANIFEST: /data/manifest.json
+      # CF_SLUG: "custom"
       # Server Configuaration
       MOTD: | 
               \u00A7k420 \u00A7r \u00A7eFUCKWITS SERVER UNITE (╯°□°)╯︵ ┻━┻ \u00A77\u00A7k420\u00A7r \u00A7k420\u00A7r 
-                      \u00A74MODDED \u00A75MINECRAFT \u00A76SERVER \u00A79LETSGOOOOOOOOOOOOO \u00A7r\u00A7k420
+                            \u00A75MINECRAFT \u00A76SERVER \u00A79LETSGOOOOOOOOOOOOO \u00A7r\u00A7k420
       ICON: ./icon.png
       SERVER_NAME: FUCKWITS SERVER UNITE (╯°□°)╯︵ ┻━┻
       MAX_PLAYERS: 6
