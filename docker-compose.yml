@@ -219,7 +219,7 @@ services:
       # Server Configuaration
       MOTD: | 
               \u00A7k420 \u00A7r \u00A7eFUCKWITS SERVER UNITE (╯°□°)╯︵ ┻━┻ \u00A77\u00A7k420\u00A7r \u00A7k420\u00A7r 
-                            \u00A75MINECRAFT \u00A76SERVER \u00A79LETSGOOOOOOOOOOOOO \u00A7r\u00A7k420
+                        \u00A75MINECRAFT \u00A76SERVER \u00A79LETSGOOOOOOOOOOOOO \u00A7r\u00A7k420
       ICON: ./icon.png
       SERVER_NAME: FUCKWITS SERVER UNITE (╯°□°)╯︵ ┻━┻
       MAX_PLAYERS: 6
