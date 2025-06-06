@@ -227,6 +227,7 @@ services:
       WHITELIST: LeviM0323
     ports:
       - "25565:25565"
+      - "25575:25575"
     volumes:
       - ${CONFIG}\minecraft-config:/data
     stdin_open: true
