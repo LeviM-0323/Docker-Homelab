@@ -67,12 +67,6 @@ services:
   sabnzbd:
     image: lscr.io/linuxserver/sabnzbd:latest
     container_name: sabnzbd
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 128M
     # network_mode: "service:gluetun"
     environment:
       - PUID=1000
@@ -102,10 +96,10 @@ services:
     ports:
       - 3000:3000
     volumes:
-      - ${CONFIG}\homepage-config:/app/config 
+      - ${CONFIG}\homepage-config:/app/config
       - ${CONFIG}\homepage-config\images:/app/public/images # optional, for images 
     restart: unless-stopped
-  
+
   tautulli:
     image: lscr.io/linuxserver/tautulli:latest
     container_name: tautulli
@@ -180,16 +174,15 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
     build:
-      context:
-        ${CONFIG}\discord-bot
+      context: ${CONFIG}\discord-bot
     volumes:
       - ${CONFIG}\discord-bot:/usr/src/app
     working_dir: /usr/src/app
     restart: unless-stopped
-    command: ["node", "src/index.js"]
+    command: [ "node", "src/index.js" ]
 
   muse:
-    image: ghcr.io/museofficial/muse:latest
+    image: ghcr.io/museofficial/muse:pr-1256
     container_name: music_bot
     deploy:
       resources:
@@ -224,7 +217,7 @@ services:
     ports:
       - "8501:8501"
     restart: unless-stopped
-  
+
   doplarr:
     image: lscr.io/linuxserver/doplarr:latest
     container_name: doplarr
@@ -250,7 +243,7 @@ services:
     volumes:
       - ${CONFIG}\doplarr-config:/config
     restart: unless-stopped
-  
+
   chatapp:
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
@@ -260,6 +253,11 @@ services:
     ports:
       - "9876:9876"
     container_name: chatapp
+    environment:
+      DB_HOST: mysql
+      DB_USER: root
+      DB_PASS: 123
+      DB_NAME: chat_db
     deploy:
       resources:
         limits:
@@ -319,7 +317,7 @@ services:
           memory: 1024M
     environment:
       # Required
-      EULA: "true" 
+      EULA: "true"
       TZ: "America/Toronto"
       MEMORY: "2G"
       # CurseForge Shit
@@ -328,9 +326,9 @@ services:
       CF_MODPACK_MANIFEST: /data/manifest.json
       CF_SLUG: "custom"
       # Server Configuaration
-      MOTD: | 
-              \u00A7k420 \u00A7r \u00A7eFUCKWITS SERVER UNITE (╯°□°)╯︵ ┻━┻ \u00A77\u00A7k420\u00A7r \u00A7k420\u00A7r 
-                        \u00A75MINECRAFT \u00A76SERVER \u00A79LETSGOOOOOOOOOOOOO \u00A7r\u00A7k420
+      MOTD: |
+        \u00A7k420 \u00A7r \u00A7eFUCKWITS SERVER UNITE (╯°□°)╯︵ ┻━┻ \u00A77\u00A7k420\u00A7r \u00A7k420\u00A7r 
+                  \u00A75MINECRAFT \u00A76SERVER \u00A79LETSGOOOOOOOOOOOOO \u00A7r\u00A7k420
       ICON: ./icon.png
       SERVER_NAME: FUCKWITS SERVER UNITE (╯°□°)╯︵ ┻━┻
       MAX_PLAYERS: 6
@@ -369,9 +367,11 @@ services:
       # Optional, if Pi-hole should get some more processing time
       - SYS_NICE
     restart: unless-stopped
+    # End #
 
-# Volumes and Networks #
+    # Volumes and Networks #
 networks:
   db_network:
     driver: bridge
+
 # End #
