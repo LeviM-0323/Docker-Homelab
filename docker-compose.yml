@@ -127,9 +127,9 @@ services:
     deploy:
       resources:
         limits:
-          memory: 256M
-        reservations:
           memory: 128M
+        reservations:
+          memory: 64M
     environment:
       - PUID=1000
       - PGID=1000
@@ -261,9 +261,9 @@ services:
     deploy:
       resources:
         limits:
-          memory: 256M
-        reservations:
           memory: 128M
+        reservations:
+          memory: 64M
     networks:
       - db_network
     restart: unless-stopped
@@ -276,9 +276,9 @@ services:
     deploy:
       resources:
         limits:
-          memory: 256M
-        reservations:
           memory: 128M
+        reservations:
+          memory: 64M
     restart: unless-stopped
     command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TOKEN}
     environment:
@@ -290,9 +290,9 @@ services:
     deploy:
       resources:
         limits:
-          memory: 256M
-        reservations:
           memory: 128M
+        reservations:
+          memory: 64M
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
@@ -312,14 +312,14 @@ services:
     deploy:
       resources:
         limits:
-          memory: 2048M
+          memory: 6144M
         reservations:
           memory: 1024M
     environment:
       # Required
       EULA: "true"
       TZ: "America/Toronto"
-      MEMORY: "2G"
+      MEMORY: "6G"
       # CurseForge Shit
       TYPE: AUTO_CURSEFORGE
       CF_API_KEY: ${CURSEFORGE_TOKEN}
@@ -327,13 +327,14 @@ services:
       CF_SLUG: "custom"
       # Server Configuaration
       MOTD: |
-        \u00A7k420 \u00A7r \u00A7eFUCKWITS SERVER UNITE (╯°□°)╯︵ ┻━┻ \u00A77\u00A7k420\u00A7r \u00A7k420\u00A7r 
-                  \u00A75MINECRAFT \u00A76SERVER \u00A79LETSGOOOOOOOOOOOOO \u00A7r\u00A7k420
+        \u00A7k420 \u00A7r \u00A7eFUCKWITS SERVER UNITE (╯°□°)╯︵ ┻━┻ \u00A77\u00A7k420\u00A7r 
+        \u00A7k420\u00A7r \u00A75MINECRAFT \u00A76SERVER \u00A79LETSGOOOOOOOO \u00A7r\u00A7k420
       ICON: ./icon.png
       SERVER_NAME: FUCKWITS SERVER UNITE (╯°□°)╯︵ ┻━┻
       MAX_PLAYERS: 6
       ENABLE_WHITELIST: "true"
-      WHITELIST: LeviM0323
+      WHITELIST: LeviM0323, Dheltaz, _ruasuar_
+      RCON_PASSWORD: 123
     ports:
       - "25565:25565"
       - "25575:25575"
@@ -349,9 +350,9 @@ services:
     deploy:
       resources:
         limits:
-          memory: 256M
-        reservations:
           memory: 128M
+        reservations:
+          memory: 64M
     ports:
       - "53:53/tcp"
       - "53:53/udp"
@@ -367,9 +368,92 @@ services:
       # Optional, if Pi-hole should get some more processing time
       - SYS_NICE
     restart: unless-stopped
-    # End #
 
-    # Volumes and Networks #
+  pairdrop:
+    image: lscr.io/linuxserver/pairdrop:latest
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+    container_name: pairdrop
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+      - RATE_LIMIT=false #optional
+      - WS_FALLBACK=false #optional
+    ports:
+      - 5555:3000
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana-enterprise
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+    container_name: grafana
+    volumes:
+      - ${CONFIG}\grafana-config:/var/lib/grafana
+    restart: unless-stopped
+    ports:
+      - '2233:3000'
+
+  prometheus:
+    image: prom/prometheus
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+    container_name: prometheus
+    volumes:
+      - ${CONFIG}\prometheus-config\prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - 9090:9090
+    restart: unless-stopped
+
+  docker_stats_exporter:
+    image: wywywywy/docker_stats_exporter:latest
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+    container_name: docker_stats_exporter
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "9487:9487"
+    restart: unless-stopped
+
+  mc-monitor:
+    image: itzg/mc-monitor
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+        reservations:
+          memory: 32M
+    container_name: mc-monitor
+    command: export-for-prometheus
+    ports:
+      - 5678:8080
+    environment:
+      EXPORT_SERVERS: mc
+      DEBUG: "true"
+    depends_on:
+      - mc
+    restart: unless-stopped
+  # End #
+
+  # Volumes and Networks #
 networks:
   db_network:
     driver: bridge
