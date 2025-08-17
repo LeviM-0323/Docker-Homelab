@@ -344,31 +344,6 @@ services:
     tty: true
     restart: unless-stopped
 
-  pihole:
-    container_name: pihole
-    image: pihole/pihole:latest
-    deploy:
-      resources:
-        limits:
-          memory: 128M
-        reservations:
-          memory: 64M
-    ports:
-      - "53:53/tcp"
-      - "53:53/udp"
-      - "82:80/tcp"
-      - "442:443/tcp"
-    environment:
-      TZ: 'America/Toronto'
-      FTLCONF_dns_listeningMode: 'all'
-      FTLCONF_webserver_api_password: ${PIHOLE_PASS}
-    volumes:
-      - ${CONFIG}\pihole-config:/etc/pihole'
-    cap_add:
-      # Optional, if Pi-hole should get some more processing time
-      - SYS_NICE
-    restart: unless-stopped
-
   pairdrop:
     image: lscr.io/linuxserver/pairdrop:latest
     deploy:
@@ -402,6 +377,41 @@ services:
     restart: unless-stopped
     ports:
       - '2233:3000'
+
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+    ports:
+      - "3100:3100"
+    volumes:
+      - ${CONFIG}\loki-config:/etc/loki
+    command: -config.file=/etc/loki/loki.yml
+    restart: unless-stopped
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+    ports:
+      - "9080:9080"
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ${CONFIG}\promtail-config:/etc/promtail
+      - /var/log:/var/log
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: -config.file=/etc/promtail/promtail.yml
+    restart: unless-stopped
 
   prometheus:
     image: prom/prometheus
