@@ -1,0 +1,90 @@
+services:
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+    environment:
+      PUID: 1000
+      PGID: 1000
+      HOMEPAGE_ALLOWED_HOSTS: "*"
+    ports:
+      - 3000:3000
+    volumes:
+      - ${CONFIG}\homepage-config:/app/config
+      - ${CONFIG}\homepage-config\images:/app/public/images # optional, for images 
+    restart: unless-stopped
+  
+  freshrss:
+    image: lscr.io/linuxserver/freshrss:latest
+    container_name: freshrss
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG}\freshrss-config:/config
+    ports:
+      - "8088:80"
+    restart: unless-stopped
+
+  rss-bridge:
+    image: rssbridge/rss-bridge:latest
+    container_name: rss-bridge
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+    environment:
+      - TZ=${TZ}
+    ports:
+      - "8089:80"
+    restart: unless-stopped
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TOKEN}
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TOKEN}
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 8001:8080
+    environment:
+      - TZ=${TZ}
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_NOTIFICATION_URL=discord://8aK38AwQ_uUjWzm4DHzSxDOfZe6zBSZ571PCvNNEl1KK8tcd8miF70h8y6NtpVdGsZYm@1323419622921338891
+      - WATCHTOWER_HTTP_API_METRICS=true
+      - WATCHTOWER_HTTP_API_TOKEN=${WATCHTOWER_TOKEN}
+    restart: unless-stopped
+    command: --schedule "0 0 4 * * *"

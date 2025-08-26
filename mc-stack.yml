@@ -1,0 +1,38 @@
+services:
+  mc:
+    image: itzg/minecraft-server
+    container_name: minecraft-server
+    deploy:
+      resources:
+        limits:
+          memory: 6144M
+        reservations:
+          memory: 1024M
+    environment:
+      # Required
+      EULA: "true"
+      TZ: "America/Toronto"
+      MEMORY: "6G"
+      # CurseForge Shit
+      TYPE: AUTO_CURSEFORGE
+      CF_API_KEY: ${CURSEFORGE_TOKEN}
+      CF_MODPACK_MANIFEST: /data/manifest.json
+      CF_SLUG: "custom"
+      # Server Configuaration
+      MOTD: |
+        \u00A7k420 \u00A7r \u00A7eFUCKWITS SERVER UNITE (╯°□°)╯︵ ┻━┻ \u00A77\u00A7k420\u00A7r 
+        \u00A7k420\u00A7r \u00A75MINECRAFT \u00A76SERVER \u00A79LETSGOOOOOOOO \u00A7r\u00A7k420
+      ICON: ./icon.png
+      SERVER_NAME: FUCKWITS SERVER UNITE (╯°□°)╯︵ ┻━┻
+      MAX_PLAYERS: 6
+      ENABLE_WHITELIST: "true"
+      WHITELIST: LeviM0323, Dheltaz, _ruasuar_
+      RCON_PASSWORD: 123
+    ports:
+      - "25565:25565"
+      - "25575:25575"
+    volumes:
+      - ${CONFIG}\minecraft-config:/data
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
