@@ -125,6 +125,12 @@ services:
     container_name: registry
     ports:
       - "5000:5000"
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+        reservations:
+          memory: 32M
     volumes:
       - ${CONFIG}\registry:/var/lib/registry
       - ${CONFIG}\registry-config\config.yml:/etc/docker/registry/config.yml
@@ -135,6 +141,12 @@ services:
     container_name: registry-ui
     ports:
       - "5001:80"
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+        reservations:
+          memory: 32M
     environment:
       - REGISTRY_TITLE=Homelab Registry
       - REGISTRY_URL=https://reg.levimclean.tech
