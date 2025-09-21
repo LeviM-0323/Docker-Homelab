@@ -145,6 +145,24 @@ services:
     networks:
       - db_network
 
+  pairdrop:
+    container_name: pairdrop
+    restart: unless-stopped
+    image: lscr.io/linuxserver/pairdrop:latest
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+      - RATE_LIMIT=false 
+    ports:
+      - 6969:3000
+
 networks:
   db_network:
     driver: bridge

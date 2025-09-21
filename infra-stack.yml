@@ -65,7 +65,9 @@ services:
         reservations:
           memory: 32M
     volumes:
-      - E:\Server\:/srv
+      - E:\Server\media:/srv/media
+      - F:\Server\:/srv/config
+      - F:\Yarr\Windows Games:/srv/yarr
       - ${CONFIG}\filebrowser-config:/config
       - ${CONFIG}\filebrowser-config:/database
     restart: unless-stopped
