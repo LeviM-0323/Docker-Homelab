@@ -43,7 +43,7 @@ services:
 
   levibot:
     container_name: levibot
-    image: reg.levimclean.tech/levibot:latest
+    build: ${CONFIG}\discord-bot
     deploy:
       resources:
         limits:
@@ -53,6 +53,8 @@ services:
     volumes:
       - ${CONFIG}\discord-bot:/usr/src/app
     restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=false
 
   muse:
     image: ghcr.io/museofficial/muse:pr-1256
@@ -74,7 +76,7 @@ services:
 
   pythonapp:
     container_name: python_app
-    image: reg.levimclean.tech/pythonapp:latest
+    build: ${CONFIG}\pythonapp-config\Python-Projects
     deploy:
       resources:
         limits:
@@ -86,9 +88,11 @@ services:
     ports:
       - "8501:8501"
     restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=false
 
   chatapp:
-    image: reg.levimclean.tech/chatapp:latest
+    build: ${CONFIG}\chatapp-config
     ports:
       - "9876:9876"
     container_name: chatapp
@@ -106,44 +110,9 @@ services:
     networks:
       - db_network
     restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=false
 
-  registry:
-    image: registry:2
-    container_name: registry
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 128M
-        reservations:
-          memory: 64M
-    ports:
-      - "5000:5000"
-    volumes:
-      - ${CONFIG}\registry:/var/lib/registry
-      - ${CONFIG}\registry-config\config.yml:/etc/docker/registry/config.yml
-    networks:
-      - db_network
-
-  registry-ui:
-    image: joxit/docker-registry-ui:main
-    container_name: registry-ui
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 128M
-        reservations:
-          memory: 64M
-    ports:
-      - "5001:80"
-    environment:
-      - REGISTRY_TITLE=Homelab Registry
-      - REGISTRY_URL=https://reg.levimclean.tech
-    depends_on:
-      - registry
-    networks:
-      - db_network
 
   pairdrop:
     container_name: pairdrop
