@@ -113,7 +113,6 @@ services:
     labels:
       - com.centurylinklabs.watchtower.enable=false
 
-
   pairdrop:
     container_name: pairdrop
     restart: unless-stopped
