@@ -90,7 +90,7 @@ services:
     container_name: mc-monitor
     command: export-for-prometheus
     ports:
-      - 5678:8080
+      - 7754:8080
     environment:
       EXPORT_SERVERS: mc
       DEBUG: "true"

@@ -70,6 +70,24 @@ services:
       - F:\Yarr\Windows Games:/srv/yarr
       - ${CONFIG}\filebrowser-config:/config
       - ${CONFIG}\filebrowser-config:/database
+    labels:
+      - com.centurylinklabs.watchtower.enable=false
+    restart: unless-stopped
+
+  diskWake:
+    container_name: diskWake
+    image: diskwake:latest
+    build: ${CONFIG}\diskwake-config
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+        reservations:
+          memory: 32M
+    volumes:
+      - "${MEDIA}:/mnt/externalhdd"
+    labels:
+      - com.centurylinklabs.watchtower.enable=false
     restart: unless-stopped
 
   cloudflared:

@@ -131,6 +131,73 @@ services:
     ports:
       - 6969:3000
 
+  yt-archiver:
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+    build: ${CONFIG}\yt-archiver-config
+    container_name: yt-archiver
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    environment:
+      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK}
+    volumes:
+      - ${VIDEOS}:/videos
+      - ${CONFIG}\yt-archiver-config\cookies.txt:/app/cookies.txt
+    ports:
+      - 7654:7654
+    restart: unless-stopped
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+    environment:
+      - N8N_HOST=n8n
+      - N8N_PORT=5678
+      - NODE_ENV=production
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=123
+      - DB_SQLITE_VACUUM_ON_STARTUP=true
+      - DB_SQLITE_POOL_SIZE=5
+      - N8N_RUNNERS_ENABLED=true
+      - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+      - N8N_GIT_NODE_DISABLE_BARE_REPOS=true
+    volumes:
+      - ${CONFIG}\n8n-config:/home/node/.n8n
+    ports:
+      - 5678:5678
+    restart: unless-stopped
+    networks:
+      - db_network
+
+  gitea:
+    image: gitea/gitea:latest
+    container_name: gitea
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+      - TZ=${TZ}
+      - GITEA__server__ROOT_URL=http://git.levimclean.me/
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+    restart: unless-stopped
+    volumes:
+      - ${CONFIG}\gitea-config:/data
+    networks:
+      - db_network
+
 networks:
   db_network:
     driver: bridge
