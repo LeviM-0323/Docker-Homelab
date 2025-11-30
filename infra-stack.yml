@@ -18,40 +18,6 @@ services:
       - ${CONFIG}\homepage-config:/app/config
       - ${CONFIG}\homepage-config\images:/app/public/images # optional, for images 
     restart: unless-stopped
-  
-  freshrss:
-    image: lscr.io/linuxserver/freshrss:latest
-    container_name: freshrss
-    deploy:
-      resources:
-        limits:
-          memory: 128M
-        reservations:
-          memory: 64M
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=${TZ}
-    volumes:
-      - ${CONFIG}\freshrss-config:/config
-    ports:
-      - "8088:80"
-    restart: unless-stopped
-
-  rss-bridge:
-    image: rssbridge/rss-bridge:latest
-    container_name: rss-bridge
-    deploy:
-      resources:
-        limits:
-          memory: 128M
-        reservations:
-          memory: 64M
-    environment:
-      - TZ=${TZ}
-    ports:
-      - "8089:80"
-    restart: unless-stopped
 
   filebrowser:
     image: filebrowser/filebrowser
@@ -147,3 +113,38 @@ services:
       - DOCKER_API_VERSION=1.52
     restart: unless-stopped
     command: --schedule "0 0 4 * * *"
+
+# Not in use #
+  # freshrss:
+  #   image: lscr.io/linuxserver/freshrss:latest
+  #   container_name: freshrss
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 128M
+  #       reservations:
+  #         memory: 64M
+  #   environment:
+  #     - PUID=1000
+  #     - PGID=1000
+  #     - TZ=${TZ}
+  #   volumes:
+  #     - ${CONFIG}\freshrss-config:/config
+  #   ports:
+  #     - "8088:80"
+  #   restart: unless-stopped
+
+  # rss-bridge:
+  #   image: rssbridge/rss-bridge:latest
+  #   container_name: rss-bridge
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 128M
+  #       reservations:
+  #         memory: 64M
+  #   environment:
+  #     - TZ=${TZ}
+  #   ports:
+  #     - "8089:80"
+  #   restart: unless-stopped
