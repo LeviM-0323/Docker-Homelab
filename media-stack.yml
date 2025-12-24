@@ -1,14 +1,24 @@
 services:
   # Automated Media Server Containers #
+  plex:
+    image: lscr.io/linuxserver/plex:latest
+    container_name: plex
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+      - VERSION=docker
+    volumes:
+      - ${CONFIG}/plex-config:/config
+      - ${TV}:/tv
+      - ${MOVIES}:/movies
+    restart: unless-stopped
+
   sonarr:
     image: lscr.io/linuxserver/sonarr:latest
     container_name: sonarr
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 128M
+    mem_limit: 256M
     # network_mode: "service:gluetun"
     environment:
       - PUID=1000
@@ -16,7 +26,7 @@ services:
       - UMASK=002
       - TZ=${TZ}
     volumes:
-      - ${CONFIG}\sonarr-config:/config
+      - ${CONFIG}/sonarr-config:/config
       - ${MEDIA}:/media
     ports:
       - "8989:8989"
@@ -25,12 +35,7 @@ services:
   radarr:
     image: lscr.io/linuxserver/radarr:latest
     container_name: radarr
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 128M
+    mem_limit: 256M
     # network_mode: "service:gluetun"
     environment:
       - PUID=1000
@@ -38,7 +43,7 @@ services:
       - UMASK=002
       - TZ=${TZ}
     volumes:
-      - ${CONFIG}\radarr-config:/config
+      - ${CONFIG}/radarr-config:/config
       - ${MEDIA}:/media
     ports:
       - "7878:7878"
@@ -47,19 +52,14 @@ services:
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:develop
     container_name: prowlarr
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 128M
+    mem_limit: 256M
     environment:
       - PUID=13006
       - PGID=13000
       - UMASK=002
       - TZ=${TZ}
     volumes:
-      - ${CONFIG}\prowlarr-config:/config
+      - ${CONFIG}/prowlarr-config:/config
     ports:
       - "9696:9696"
     restart: unless-stopped
@@ -75,7 +75,7 @@ services:
       - TZ=${TZ}
     volumes:
       - ${MEDIA}:/media
-      - ${CONFIG}\sabnzbd-config:/config
+      - ${CONFIG}/sabnzbd-config:/config
     ports:
       - "8081:8081"
     restart: unless-stopped
@@ -83,18 +83,13 @@ services:
   tautulli:
     image: lscr.io/linuxserver/tautulli:latest
     container_name: tautulli
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 128M
+    mem_limit: 256M
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=${TZ}
     volumes:
-      - ${CONFIG}\tautulli-config:/config
+      - ${CONFIG}/tautulli-config:/config
     ports:
       - 8181:8181
     restart: unless-stopped
@@ -102,12 +97,7 @@ services:
   doplarr:
     image: lscr.io/linuxserver/doplarr:latest
     container_name: doplarr
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-        reservations:
-          memory: 256M
+    mem_limit: 512M
     environment:
       - PUID=1000
       - PGID=1000
@@ -122,5 +112,5 @@ services:
       - PARTIAL_SEASONS=false #optional
       - LOG_LEVEL=:info #optional
     volumes:
-      - ${CONFIG}\doplarr-config:/config
+      - ${CONFIG}/doplarr-config:/config
     restart: unless-stopped

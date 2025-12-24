@@ -2,18 +2,15 @@ services:
   nginx:
     image: lscr.io/linuxserver/nginx:latest
     container_name: nginx
-    deploy:
-      resources:
-        limits:
-          memory: 128M
-        reservations:
-          memory: 64M
+    mem_limit: 128M
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=${TZ}
     volumes:
-      - ${CONFIG}\nginx-config:/config
+      - ${CONFIG}/nginx-config:/config
+      - ${CONFIG}/certbot-config/www:/var/www/certbot
+      - ${CONFIG}/certbot-config/letsencrypt:/etc/letsencrypt:ro
     ports:
       - 80:80
       - 443:443
@@ -24,34 +21,21 @@ services:
   mysql:
     image: mysql
     container_name: mysql
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-        reservations:
-          memory: 256M
+    mem_limit: 512M
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: 'website_db'
-      MYSQL_USER: 'root'
-      MYSQL_PASSWORD: '123'
-      MYSQL_ROOT_PASSWORD: '123'
+      - MYSQL_ROOT_PASSWORD=123
     volumes:
-      - ${CONFIG}\mysql-config:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
     networks:
       - db_network
 
   levibot:
     container_name: levibot
-    build: ${CONFIG}\discord-bot
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 128M
+    build: ${CONFIG}/discord-bot
+    mem_limit: 256M
     volumes:
-      - ${CONFIG}\discord-bot:/usr/src/app
+      - ${CONFIG}/discord-bot:/usr/src/app
     restart: unless-stopped
     labels:
       - com.centurylinklabs.watchtower.enable=false
@@ -59,15 +43,10 @@ services:
   muse:
     image: ghcr.io/museofficial/muse:pr-1256
     container_name: music_bot
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 128M
+    mem_limit: 256M
     restart: unless-stopped
     volumes:
-      - ${CONFIG}\muse-config:/data
+      - ${CONFIG}/muse-config:/data
     environment:
       - DISCORD_TOKEN=${MUSE_TOKEN}
       - YOUTUBE_API_KEY=${YOUTUBE_KEY}
@@ -78,12 +57,7 @@ services:
     container_name: pairdrop
     restart: unless-stopped
     image: lscr.io/linuxserver/pairdrop:latest
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 128M
+    mem_limit: 256M
     environment:
       - PUID=1000
       - PGID=1000
@@ -95,12 +69,7 @@ services:
   n8n:
     image: n8nio/n8n:latest
     container_name: n8n
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 128M
+    mem_limit: 1024M
     environment:
       - N8N_HOST=n8n
       - N8N_PORT=5678
@@ -114,7 +83,7 @@ services:
       - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
       - N8N_GIT_NODE_DISABLE_BARE_REPOS=true
     volumes:
-      - ${CONFIG}\n8n-config:/home/node/.n8n
+      - ${CONFIG}/n8n-config:/home/node/.n8n
     ports:
       - 5678:5678
     restart: unless-stopped
@@ -122,23 +91,37 @@ services:
       - db_network
 
   aig:
-    build: ${CONFIG}\aig-config
+    build: ${CONFIG}/aig-config
     container_name: aig
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
-    deploy:
-      resources:
-        limits:
-          memory: 64M
-        reservations:
-          memory: 32M
+    mem_limit: 64M
     environment:
       - BASE_URL=https://aig.levimclean.me
     ports:
       - "1255:1255"
     volumes:
-      - ${CONFIG}\aig-config\images:/app/images
+      - ${CONFIG}/aig-config/images:/app/images
     restart: unless-stopped
+  
+  wordpress:
+    image: wordpress:latest
+    container_name: wordpress
+    mem_limit: 256M
+    environment:
+      - WORDPRESS_DB_HOST=mysql:3306
+      - WORDPRESS_DB_USER=root
+      - WORDPRESS_DB_PASSWORD=123
+      - WORDPRESS_DB_NAME=wordpress_db
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG}/wordpress-config:/var/www/html
+      - ${CONFIG}/wordpress-config/php.ini:/usr/local/etc/php/conf.d/php.ini:ro
+    ports:
+      - 8080:80
+    restart: unless-stopped
+    networks:
+      - db_network
 
   gitea:
     image: gitea/gitea:latest
@@ -148,22 +131,17 @@ services:
       - USER_GID=1000
       - TZ=${TZ}
       - GITEA__server__ROOT_URL=https://git.levimclean.me/
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 128M
+    mem_limit: 256M
     restart: unless-stopped
     volumes:
-      - ${CONFIG}\gitea-config:/data
+      - ${CONFIG}/gitea-config:/data
     networks:
       - db_network
 
 # Not in use #
   # pythonapp:
   #   container_name: python_app
-  #   build: ${CONFIG}\pythonapp-config\Python-Projects
+  #   build: ${CONFIG}/pythonapp-config/Python-Projects
   #   deploy:
   #     resources:
   #       limits:
@@ -171,7 +149,7 @@ services:
   #       reservations:
   #         memory: 128M
   #   volumes:
-  #     - ${CONFIG}\pythonapp-config:/app
+  #     - ${CONFIG}/pythonapp-config:/app
   #   ports:
   #     - "8501:8501"
   #   restart: unless-stopped
@@ -179,7 +157,7 @@ services:
   #     - com.centurylinklabs.watchtower.enable=false
 
   # chatapp:
-  #   build: ${CONFIG}\chatapp-config
+  #   build: ${CONFIG}/chatapp-config
   #   ports:
   #     - "9876:9876"
   #   container_name: chatapp
@@ -203,7 +181,7 @@ services:
   # yt-archiver:
   #   labels:
   #     - "com.centurylinklabs.watchtower.enable=false"
-  #   build: ${CONFIG}\yt-archiver-config
+  #   build: ${CONFIG}/yt-archiver-config
   #   container_name: yt-archiver
   #   deploy:
   #     resources:
@@ -213,10 +191,13 @@ services:
   #     - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK}
   #   volumes:
   #     - ${VIDEOS}:/videos
-  #     - ${CONFIG}\yt-archiver-config\cookies.txt:/app/cookies.txt
+  #     - ${CONFIG}/yt-archiver-config/cookies.txt:/app/cookies.txt
   #   ports:
   #     - 7654:7654
   #   restart: unless-stopped
+
+volumes:
+  mysql_data:
 
 networks:
   db_network:
