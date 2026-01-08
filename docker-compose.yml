@@ -115,21 +115,6 @@ services:
       - ${CONFIG}/doplarr-config:/config
     restart: unless-stopped
 
-  jellyfin:
-    image: jellyfin/jellyfin:latest
-    container_name: jellyfin
-    user: 1000:1000
-    ports:
-      - 8096:8096/tcp
-      - 7359:7359/udp
-    volumes:
-      - ${CONFIG}/jellyfin-config:/config
-      - ${CONFIG}/jellyfin-config/cache:/cache
-      - ${MEDIA}:/media
-    environment:
-      - TZ=${TZ}
-    restart: unless-stopped
-
 #----------------------- DEVELOPMENT CONTAINERS -----------------#
   nginx:
     image: lscr.io/linuxserver/nginx:latest
