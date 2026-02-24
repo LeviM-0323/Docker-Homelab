@@ -76,6 +76,7 @@ services:
     volumes:
       - ${MEDIA}:/media
       - ${CONFIG}/sabnzbd-config:/config
+      - /home/levi/Downloads:/watched
     ports:
       - "8081:8081"
     restart: unless-stopped
@@ -108,7 +109,7 @@ services:
       - SONARR__API=${SONARR_TOKEN}
       - SONARR__URL=http://10.0.0.201:8989
       - DISCORD__MAX_RESULTS=10 #optional
-      - DISCORD__REQUESTED_MSG_STYLE=:plain #optional
+      - DISCORD__REQUESTED_MSG_STYLE=:embed #optional
       - PARTIAL_SEASONS=false #optional
       - LOG_LEVEL=:info #optional
     volumes:
@@ -128,6 +129,7 @@ services:
       - ${CONFIG}/nginx-config:/config
       - ${CONFIG}/certbot-config/www:/var/www/certbot
       - ${CONFIG}/certbot-config/letsencrypt:/etc/letsencrypt:ro
+      - /mnt/HDD/EnergyShop/src:/config/www/energyshop:ro
     ports:
       - 80:80
       - 443:443
@@ -151,6 +153,8 @@ services:
     container_name: levibot
     build: ${CONFIG}/discord-bot
     mem_limit: 256M
+    environment:
+      - TZ=${TZ}
     volumes:
       - ${CONFIG}/discord-bot:/usr/src/app
     restart: unless-stopped
@@ -158,7 +162,7 @@ services:
       - com.centurylinklabs.watchtower.enable=false
 
   muse:
-    image: ghcr.io/museofficial/muse:latest # pr-1256
+    image: ghcr.io/museofficial/muse:pr-1256 # pr-1256
     container_name: music_bot
     mem_limit: 256M
     restart: unless-stopped
@@ -197,9 +201,10 @@ services:
       - N8N_BASIC_AUTH_PASSWORD=123
       - DB_SQLITE_VACUUM_ON_STARTUP=true
       - DB_SQLITE_POOL_SIZE=5
-      - N8N_RUNNERS_ENABLED=true
       - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
       - N8N_GIT_NODE_DISABLE_BARE_REPOS=true
+      - GENERIC_TIMEZONE=${TZ}
+      - TZ=${TZ}
     volumes:
       - ${CONFIG}/n8n-config:/home/node/.n8n
     ports:
@@ -249,7 +254,7 @@ services:
       - USER_GID=1000
       - TZ=${TZ}
       - GITEA__server__ROOT_URL=https://git.levimclean.me/
-    mem_limit: 256M
+    mem_limit: 1G
     restart: unless-stopped
     volumes:
       - ${CONFIG}/gitea-config:/data
@@ -312,6 +317,17 @@ services:
   #   ports:
   #     - 7654:7654
   #   restart: unless-stopped
+  ufcstreamer:
+    build: ${CONFIG}/ufcstreamer-config
+    container_name: ufcstreamer
+    mem_limit: 64M
+    environment:
+      - TZ=${TZ}
+    ports:
+      - "8085:8080"
+    restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=false
 
 #----------------- INFRASTRUCTURE CONTAINERS --------------------#
   homepage:
@@ -322,12 +338,37 @@ services:
       PUID: 1000
       PGID: 1000
       HOMEPAGE_ALLOWED_HOSTS: "*"
+      TZ: ${TZ}
     ports:
       - 3000:3000
     volumes:
       - ${CONFIG}/homepage-config:/app/config
       - ${CONFIG}/homepage-config/images:/app/public/images # optional, for images 
     restart: unless-stopped
+  
+  pihole:
+    container_name: pihole
+    hostname: levi-mint
+    image: pihole/pihole:latest
+    mem_limit: 256m
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "8083:80/tcp"
+      - "4443:443/tcp"
+      - "67:67/udp"
+    environment:
+      TZ: ${TZ}
+      FTLCONF_webserver_api_password: ${PIHOLE_PASSWORD}
+      FTLCONF_dns_listeningMode: 'ALL'
+    volumes:
+      - '${CONFIG}/pihole-config:/etc/pihole'
+    cap_add:
+      - NET_ADMIN
+      - SYS_NICE
+    restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.enable=false
 
   filebrowser:
     image: filebrowser/filebrowser
@@ -350,6 +391,8 @@ services:
     image: diskwake:latest
     build: ${CONFIG}/diskwake-config
     mem_limit: 64M
+    environment:
+      - TZ=${TZ}
     volumes:
       - "${MEDIA}:/mnt/externalhdd"
     labels:
@@ -385,6 +428,7 @@ services:
   wireguard:
     image: lscr.io/linuxserver/wireguard:latest
     container_name: wireguard
+    mem_limit: 256M
     cap_add:
       - NET_ADMIN
     environment:
@@ -422,39 +466,29 @@ services:
     restart: unless-stopped
     command: --schedule "0 0 4 * * *"
 
-  # freshrss:
-  #   image: lscr.io/linuxserver/freshrss:latest
-  #   container_name: freshrss
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         memory: 128M
-  #       reservations:
-  #         memory: 64M
-  #   environment:
-  #     - PUID=1000
-  #     - PGID=1000
-  #     - TZ=${TZ}
-  #   volumes:
-  #     - ${CONFIG}/freshrss-config:/config
-  #   ports:
-  #     - "8088:80"
-  #   restart: unless-stopped
+  freshrss:
+    image: lscr.io/linuxserver/freshrss:latest
+    container_name: freshrss
+    mem_limit: 128M
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG}/freshrss-config:/config
+    ports:
+      - "8088:80"
+    restart: unless-stopped
 
-  # rss-bridge:
-  #   image: rssbridge/rss-bridge:latest
-  #   container_name: rss-bridge
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         memory: 128M
-  #       reservations:
-  #         memory: 64M
-  #   environment:
-  #     - TZ=${TZ}
-  #   ports:
-  #     - "8089:80"
-  #   restart: unless-stopped
+  rss-bridge:
+    image: rssbridge/rss-bridge:latest
+    container_name: rss-bridge
+    mem_limit: 128M
+    environment:
+      - TZ=${TZ}
+    ports:
+      - "8089:80"
+    restart: unless-stopped
 
 #--------------------- MONITORING CONTAINERS ---------------------#
   grafana:
@@ -540,6 +574,32 @@ services:
       EXPORT_SERVERS: mc
       DEBUG: "true"
     restart: unless-stopped
+  
+  dozzle:
+    image: amir20/dozzle:latest
+    mem_limit: 128M
+    container_name: dozzle
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 9999:8080
+    environment:
+      # Uncomment to enable container actions (stop, start, restart). See https://dozzle.dev/guide/actions
+      - DOZZLE_ENABLE_ACTIONS=true
+      # Uncomment to allow access to container shells. See https://dozzle.dev/guide/shell
+      - DOZZLE_ENABLE_SHELL=true
+    restart: unless-stopped
+  
+  actual_server:
+    image: actualbudget/actual-server:latest
+    container_name: actual
+    mem_limit: 256M
+    ports:
+      - "5006:5006"
+    volumes:
+      - ${CONFIG}/actual-config:/data
+    restart: unless-stopped
+
 #------------------------- MINECRAFT CONTAINERS -------------------#
   mc:
     image: itzg/minecraft-server
@@ -554,19 +614,21 @@ services:
       GID: 1000
       # CurseForge Shit
       TYPE: VANILLA
+      # TYPE: AUTO_CURSEFORGE
       # CF_API_KEY: ${CURSEFORGE_TOKEN}
-      # CF_MODPACK_MANIFEST: /data/manifest.json
+      # CF_MODPACK_MANIFEST: /data/manifest.json # Custom Modpack Manifest Path
       # CF_SLUG: "custom"
-      # Server Configuaration
+      # CF_SLUG: the-pixelmon-modpack
+      # Server Configuration
       MOTD: |
         \u00A7k420 \u00A7r \u00A7eFUCKWITS SERVER UNITE (╯°□°)╯︵ ┻━┻ \u00A77\u00A7k420\u00A7r 
         \u00A7k420\u00A7r \u00A75MINECRAFT \u00A76SERVER \u00A79LETSGOOOOOOOO \u00A7r\u00A7k420
       ICON: ./icon.png
-      LEVEL: vanillaWorld # Change if moving to modded server
+      LEVEL: vanillaWorld # Change if moving to modded server (ModdedWorld, vanillaWorld, PixelmonWorld, etc)
       SERVER_NAME: FUCKWITS SERVER UNITE (╯°□°)╯︵ ┻━┻
       MAX_PLAYERS: 6
       ENABLE_WHITELIST: "true"
-      WHITELIST: LeviM0323, Dheltaz, _ruasuar_
+      WHITELIST: LeviM0323, Dheltaz, _ruasuar_, GiggleMaster237
       RCON_PASSWORD: ${RCON_PASSWORD}
     ports:
       - "25565:25565"
