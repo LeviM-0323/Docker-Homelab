@@ -1,0 +1,26 @@
+services:
+  portfolio:
+    build:
+      context: ./config/portfolio-config
+    environment:
+      NEXT_TELEMETRY_DISABLED: "1"
+      VIRTUAL_HOST: "${PORTFOLIO_STAGING_HOST:-portfolio-preview.localhost}"
+      VIRTUAL_PORT: "3000"
+    expose:
+      - "3000"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/api/health').then(async (response) => { const body = await response.json(); process.exit(response.ok && body.status === 'ok' ? 0 : 1); }).catch(() => process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    depends_on:
+      nginx-proxy:
+        condition: service_started
+    networks:
+      - proxy
