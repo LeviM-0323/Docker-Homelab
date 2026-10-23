@@ -149,6 +149,70 @@ services:
     networks:
       - db_network
 
+  portfolio-e2e:
+    profiles:
+      - portfolio-test
+    build:
+      context: ./config/portfolio-config
+    environment:
+      DATABASE_URL: mysql://portfolio_test:portfolio-test-only@portfolio-test-db:3306/portfolio_test
+      NEXT_TELEMETRY_DISABLED: "1"
+      SMTP_HOST: portfolio-mailpit
+      SMTP_PORT: "1025"
+      SMTP_SECURE: "false"
+    expose:
+      - "3000"
+    volumes:
+      - ./config/portfolio-config/tests:/app/tests:ro
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/api/health').then(async (response) => { const body = await response.json(); process.exit(response.ok && body.status === 'ok' ? 0 : 1); }).catch(() => process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+    depends_on:
+      portfolio-test-db:
+        condition: service_healthy
+      portfolio-mailpit:
+        condition: service_started
+    networks:
+      - portfolio_test
+    restart: "no"
+
+  portfolio-test-db:
+    profiles:
+      - portfolio-test
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: portfolio_test
+      MYSQL_USER: portfolio_test
+      MYSQL_PASSWORD: portfolio-test-only
+      MYSQL_ROOT_PASSWORD: portfolio-test-root-only
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "--silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    networks:
+      - portfolio_test
+    restart: "no"
+
+  portfolio-mailpit:
+    profiles:
+      - portfolio-test
+    image: axllent/mailpit:v1.27.8
+    expose:
+      - "1025"
+      - "8025"
+    networks:
+      - portfolio_test
+    restart: "no"
+
   levibot:
     container_name: levibot
     build: ${CONFIG}/discord-bot
@@ -646,3 +710,5 @@ volumes:
 networks:
   db_network:
     driver: bridge
+  portfolio_test:
+    internal: true

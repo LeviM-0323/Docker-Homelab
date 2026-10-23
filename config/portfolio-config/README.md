@@ -34,3 +34,22 @@ Use Node.js 20.9 or newer:
 npm ci
 npm run dev
 ```
+
+## HTTP acceptance tests
+
+From this directory, run:
+
+```sh
+npm run test:e2e
+```
+
+The test command starts a one-off app with the `portfolio-test` Compose profile.
+It provisions a disposable MySQL database and Mailpit SMTP sink on a private
+Docker network, runs the HTTP tests inside the app container, then removes the
+test containers. The test app has no published host port and is not attached to
+the production proxy or database network. Test database credentials are
+local-only placeholders; the mail sink cannot send to real recipients.
+
+At this foundation stage, the checks cover the public health response and
+server-rendered homepage. Later account and mail features can exercise their
+behavior through the same isolated database and mail sink.
