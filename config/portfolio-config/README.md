@@ -47,6 +47,7 @@ test containers. The test app has no published host port and is not attached to
 the production proxy or database network. Test database credentials are
 local-only placeholders; the mail sink cannot send to real recipients.
 
-At this foundation stage, the checks cover the public health response and
-server-rendered homepage. Later account and mail features can exercise their
-behavior through the same isolated database and mail sink.
+The checks cover the public health response, server-rendered homepage and
+metadata, an isolated MySQL fixture round-trip, and a test SMTP message captured
+by Mailpit. The app itself does not yet use a database or send email; later
+account and mail features should be tested through this same isolated setup.
