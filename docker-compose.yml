@@ -127,15 +127,77 @@ services:
       - TZ=${TZ}
     volumes:
       - ${CONFIG}/nginx-config:/config
-      - ${CONFIG}/certbot-config/www:/var/www/certbot
-      - ${CONFIG}/certbot-config/letsencrypt:/etc/letsencrypt:ro
-      - /mnt/HDD/EnergyShop/src:/config/www/energyshop:ro
-    ports:
-      - 80:80
-      - 443:443
+    expose:
+      - "80"
     restart: unless-stopped
     networks:
       - db_network
+
+  nginx-proxy:
+    image: jwilder/nginx-proxy:latest
+    container_name: nginx-proxy
+    mem_limit: 512M
+    environment:
+      - DEFAULT_HOST=levimclean.world
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ${CONFIG}/nginx-proxy/certs:/etc/nginx/certs
+      - ${CONFIG}/nginx-proxy/vhost:/etc/nginx/vhost.d
+      - ${CONFIG}/nginx-proxy/html:/usr/share/nginx/html
+    restart: unless-stopped
+    networks:
+      - db_network
+      - proxy
+
+  portfolio:
+    build:
+      context: ./config/portfolio-config
+    environment:
+      NEXT_TELEMETRY_DISABLED: "1"
+      VIRTUAL_HOST: "levimclean.world"
+      VIRTUAL_PORT: "3000"
+      LETSENCRYPT_HOST: "levimclean.world"
+      LETSENCRYPT_EMAIL: "levi@levimclean.world"
+    expose:
+      - "3000"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/api/health').then(async (response) => { const body = await response.json(); process.exit(response.ok && body.status === 'ok' ? 0 : 1); }).catch(() => process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    depends_on:
+      nginx-proxy:
+        condition: service_started
+    networks:
+      - proxy
+
+  acme-companion:
+    image: nginxproxy/acme-companion
+    container_name: acme-companion
+    mem_limit: 128M
+    depends_on:
+      - nginx-proxy
+    environment:
+      - DEFAULT_EMAIL=aidanmclean111@gmail.com
+      - NGINX_PROXY_CONTAINER=nginx-proxy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${CONFIG}/nginx-proxy/certs:/etc/nginx/certs
+      - ${CONFIG}/nginx-proxy/vhost:/etc/nginx/vhost.d
+      - ${CONFIG}/nginx-proxy/html:/usr/share/nginx/html
+    restart: unless-stopped
+    networks:
+      - db_network
+      - proxy
 
   mysql:
     image: mysql
@@ -712,3 +774,4 @@ networks:
     driver: bridge
   portfolio_test:
     internal: true
+  proxy:

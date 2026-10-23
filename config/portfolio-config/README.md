@@ -1,30 +1,27 @@
-# Portfolio preview
+# Personal website
 
-This is the first Next.js foundation for the website modernization. It is
-intentionally separate from the PHP site: the existing public routes and the
-Energy Shop are not changed.
+The Next.js application serves `levimclean.world` through the Compose-managed
+nginx-proxy and Let's Encrypt services. The PHP site is no longer routed through
+the public proxy. Account, email, and Energy Shop features have not been
+migrated and are unavailable from the new site.
 
-## Run beside PHP
+## Start the site
 
-From the repository root, start the preview with the existing Compose stack:
-
-```sh
-docker compose -f docker-compose.yml -f docker-compose.portfolio.yml up --build -d portfolio
-```
-
-The default preview hostname is `portfolio-preview.localhost`. On the Docker
-host, open `http://portfolio-preview.localhost` or check the health endpoint:
+From the repository root, rebuild and start the proxy and portfolio services:
 
 ```sh
-curl --fail --header 'Host: portfolio-preview.localhost' http://127.0.0.1/api/health
+docker compose up --build -d nginx nginx-proxy acme-companion portfolio
 ```
 
-For a staging hostname that resolves to this server, set
-`PORTFOLIO_STAGING_HOST` in the environment before starting Compose. The default
-`.localhost` hostname is intended for local preview only.
+Once DNS for `levimclean.world` points to this server and the services are
+healthy, open `https://levimclean.world`. Check readiness on the Docker host:
 
-Compose reports container readiness from `/api/health`. The application has no
-database connection, mail credentials, or other secrets at this stage.
+```sh
+curl --fail --header 'Host: levimclean.world' http://127.0.0.1/api/health
+```
+
+Compose reports container readiness from `/api/health`. The application does
+not yet use a database or send email.
 
 ## Local development
 
