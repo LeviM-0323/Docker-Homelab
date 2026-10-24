@@ -12,7 +12,7 @@ export default function ResumePage() {
       <SubpageHeader />
       <main className="route-main">
         <p className="route-kicker">BACKGROUND & EXPERIENCE</p>
-        <h1 className="route-title">Resume &amp; Cover Letter</h1>
+        <h1 className="route-title">Resume</h1>
         <p className="route-intro">
           A little more about my professional background. You can download my
           current resume as a Word document below.
@@ -31,6 +31,19 @@ export default function ResumePage() {
             <dd>Woodstock, Ontario</dd>
           </div>
         </dl>
+        <section
+          className="resume-highlights"
+          aria-labelledby="resume-highlights-title"
+        >
+          <h2 id="resume-highlights-title">Why hire me?</h2>
+          <ul>
+            <li>Experience in web and software development</li>
+            <li>Strong problem-solving and analytical skills</li>
+            <li>Communication and teamwork</li>
+            <li>A passion for learning and growth</li>
+          </ul>
+          <p>References available upon request.</p>
+        </section>
         <div className="route-actions">
           <a
             className="button-link"

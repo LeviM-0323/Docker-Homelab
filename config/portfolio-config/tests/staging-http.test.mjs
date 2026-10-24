@@ -87,8 +87,10 @@ test("the established resume page is available over HTTP", async () => {
 
   const html = await response.text();
   assert.match(html, /<title>Resume — Levi McLean<\/title>/);
-  assert.match(html, /<h1[^>]*>Resume &amp; Cover Letter<\/h1>/);
+  assert.match(html, /<h1[^>]*>Resume<\/h1>/);
   assert.match(html, /Software Developer \/ Internet Applications Developer/);
+  assert.match(html, /Why hire me\?/);
+  assert.match(html, /References available upon request\./);
   assert.match(html, /href="\/resume\/Levi_McLean_Resume\.docx"/);
   assert.match(html, /href="\/contact\.php"/);
 });
