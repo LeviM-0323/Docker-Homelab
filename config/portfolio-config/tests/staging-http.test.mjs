@@ -45,6 +45,21 @@ test("staged homepage preserves Levi's identity in a usable portfolio", async ()
   assert.match(html, /Docker/);
   assert.match(html, /href="mailto:levi@levimclean\.tech"/);
   assert.match(html, /href="https:\/\/github\.com\/LeviM-0323"/);
+  assert.match(html, /href="\/resume\/Levi_McLean_Resume\.docx"/);
+  assert.match(html, /download=""/);
+});
+
+test("the public resume download is served over HTTP", async () => {
+  const response = await fetch(
+    `${baseUrl}/resume/Levi_McLean_Resume.docx`,
+    { method: "HEAD" },
+  );
+
+  assert.equal(response.status, 200);
+  assert.match(
+    response.headers.get("content-type") ?? "",
+    /application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document/,
+  );
 });
 
 test("staging SMTP delivers only to the isolated Mailpit sink", async () => {
