@@ -34,7 +34,7 @@ export default function HomePage() {
           <a href="#toolbox">Toolbox</a>
           <a href="#workbench">Workbench</a>
         </nav>
-        <a className="header-contact" href="mailto:levi@levimclean.tech">
+        <a className="header-contact" href="/contact.php">
           Say hello <span aria-hidden="true">↗</span>
         </a>
       </header>
@@ -175,9 +175,11 @@ export default function HomePage() {
           </p>
         </div>
         <div className="footer-links">
+          <a href="/resume.php">Resume page</a>
           <a href="/resume/Levi_McLean_Resume.docx" download>
             Resume (DOCX) <span aria-hidden="true">↓</span>
           </a>
+          <a href="/contact.php">Contact page</a>
           <a href="mailto:levi@levimclean.tech">levi@levimclean.tech</a>
           <a
             href="https://github.com/LeviM-0323"

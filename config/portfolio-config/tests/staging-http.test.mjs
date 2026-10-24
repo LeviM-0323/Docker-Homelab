@@ -45,6 +45,8 @@ test("staged homepage preserves Levi's identity in a usable portfolio", async ()
   assert.match(html, /Docker/);
   assert.match(html, /href="mailto:levi@levimclean\.tech"/);
   assert.match(html, /href="https:\/\/github\.com\/LeviM-0323"/);
+  assert.match(html, /href="\/contact\.php"/);
+  assert.match(html, /href="\/resume\.php"/);
   assert.match(html, /href="\/resume\/Levi_McLean_Resume\.docx"/);
   assert.match(html, /download=""/);
 });
@@ -60,6 +62,35 @@ test("the public resume download is served over HTTP", async () => {
     response.headers.get("content-type") ?? "",
     /application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document/,
   );
+});
+
+test("the established contact page is available over HTTP", async () => {
+  const response = await fetch(`${baseUrl}/contact.php`);
+
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("content-type") ?? "", /text\/html/);
+
+  const html = await response.text();
+  assert.match(html, /<title>Contact Levi McLean<\/title>/);
+  assert.match(html, /<h1[^>]*>Contact Information<\/h1>/);
+  assert.match(html, /<nav[^>]+aria-label="Page navigation"/);
+  assert.match(html, /href="tel:\+15195351398"/);
+  assert.match(html, /href="mailto:levi@levimclean\.tech"/);
+  assert.match(html, /href="https:\/\/github\.com\/LeviM-0323"/);
+});
+
+test("the established resume page is available over HTTP", async () => {
+  const response = await fetch(`${baseUrl}/resume.php`);
+
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("content-type") ?? "", /text\/html/);
+
+  const html = await response.text();
+  assert.match(html, /<title>Resume — Levi McLean<\/title>/);
+  assert.match(html, /<h1[^>]*>Resume &amp; Cover Letter<\/h1>/);
+  assert.match(html, /Software Developer \/ Internet Applications Developer/);
+  assert.match(html, /href="\/resume\/Levi_McLean_Resume\.docx"/);
+  assert.match(html, /href="\/contact\.php"/);
 });
 
 test("staging SMTP delivers only to the isolated Mailpit sink", async () => {

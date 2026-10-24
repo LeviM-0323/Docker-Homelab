@@ -531,6 +531,77 @@ h1 {
   color: inherit;
 }
 
+.route-main {
+  min-height: calc(100svh - 190px);
+  padding-block: clamp(4rem, 9vw, 7.5rem);
+}
+
+.route-kicker {
+  margin-bottom: 1rem;
+  color: var(--red-dark);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.075em;
+}
+
+.route-title {
+  max-width: 15ch;
+  margin-bottom: 1.25rem;
+  font-size: clamp(3rem, 7vw, 5.5rem);
+}
+
+.route-intro {
+  max-width: 38rem;
+  margin-bottom: 2.75rem;
+  color: #49443f;
+  font-size: clamp(1.05rem, 1.7vw, 1.2rem);
+  line-height: 1.72;
+}
+
+.detail-list {
+  max-width: 680px;
+  margin: 0;
+  border-top: 1px solid var(--line);
+}
+
+.detail-list > div {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.45fr) minmax(0, 1fr);
+  gap: 1.5rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.detail-list dt {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.detail-list dd {
+  margin: 0;
+  font-weight: 650;
+}
+
+.route-backlink {
+  margin-top: 2.5rem;
+  color: var(--muted);
+}
+
+.route-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.4rem;
+  margin-top: 2rem;
+}
+
+.subpage-footer {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
 @media (width <= 760px) {
   .site-header,
   main,
@@ -554,6 +625,10 @@ h1 {
   .site-header nav a,
   .header-contact {
     font-size: 0.8rem;
+  }
+
+  .subpage-header nav {
+    gap: 0.8rem;
   }
 
   .header-contact {
@@ -680,6 +755,11 @@ h1 {
     flex-direction: column;
     gap: 0.6rem;
     line-height: 1.5;
+  }
+
+  .detail-list > div {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
   }
 }
 
