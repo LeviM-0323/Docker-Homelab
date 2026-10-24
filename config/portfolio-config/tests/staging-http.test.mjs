@@ -14,7 +14,7 @@ test("staged app reports readiness over HTTP", async () => {
   assert.deepEqual(await response.json(), { status: "ok" });
 });
 
-test("staged homepage returns meaningful rendered content and metadata", async () => {
+test("staged homepage preserves Levi's identity in a usable portfolio", async () => {
   const response = await fetch(`${baseUrl}/`);
 
   assert.equal(response.status, 200);
@@ -22,16 +22,29 @@ test("staged homepage returns meaningful rendered content and metadata", async (
 
   const html = await response.text();
   assert.match(html, /<html lang="en">/);
-  assert.match(html, /<title>Levi McLean<\/title>/);
+  assert.match(html, /<title>Levi McLean — Projects &amp; Experiments<\/title>/);
   assert.match(
     html,
-    /<meta name="description" content="The personal website of Levi McLean\."\s*\/?>/,
+    /<meta name="description" content="A personal corner of the internet for Levi McLean: projects, tinkering, and notes\."\s*\/?>/,
   );
   assert.match(html, /<main(?:\s|>)/);
   assert.match(
     html,
-    /<h1(?:\s|>)A new home for my projects\.<\/h1>/,
+    /<h1[^>]*>Curious by nature\. Building things to find out\.<\/h1>/,
   );
+  assert.match(html, /<img[^>]+alt="McLean V1 logo"/);
+  assert.match(html, /<nav[^>]+aria-label="Main navigation"/);
+  assert.match(html, /href="#about"/);
+  assert.match(html, /href="#toolbox"/);
+  assert.match(html, /href="#workbench"/);
+  assert.match(html, /id="about"/);
+  assert.match(html, /id="toolbox"/);
+  assert.match(html, /id="workbench"/);
+  assert.match(html, /Fanshawe/);
+  assert.match(html, /Python/);
+  assert.match(html, /Docker/);
+  assert.match(html, /href="mailto:levi@levimclean\.tech"/);
+  assert.match(html, /href="https:\/\/github\.com\/LeviM-0323"/);
 });
 
 test("staging SMTP delivers only to the isolated Mailpit sink", async () => {
