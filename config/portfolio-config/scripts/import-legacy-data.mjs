@@ -1,6 +1,8 @@
 import { readFile } from "node:fs/promises";
 import mysql from "mysql2/promise";
 
+class ImportError extends Error {}
+
 const accountTable = `
   CREATE TABLE IF NOT EXISTS legacy_import_accounts (
     legacy_id BIGINT UNSIGNED NOT NULL PRIMARY KEY,
@@ -31,7 +33,7 @@ function validateSnapshot(snapshot) {
     !Array.isArray(snapshot.accounts) ||
     !Array.isArray(snapshot.subscribers)
   ) {
-    throw new Error("Snapshot must contain accounts and subscribers arrays.");
+    throw new ImportError("Snapshot must contain accounts and subscribers arrays.");
   }
 
   const accountIds = new Set();
@@ -45,17 +47,19 @@ function validateSnapshot(snapshot) {
       !isValidEmail(account.email) ||
       typeof account.password !== "string"
     ) {
-      throw new Error(`Account record ${index + 1} is invalid.`);
+      throw new ImportError(`Account record ${index + 1} is invalid.`);
     }
     if (accountIds.has(account.id)) {
-      throw new Error(`Account record ${index + 1} duplicates an account ID.`);
+      throw new ImportError(
+        `Account record ${index + 1} duplicates an account ID.`,
+      );
     }
     accountIds.add(account.id);
   }
 
   for (const [index, email] of snapshot.subscribers.entries()) {
     if (typeof email !== "string" || !isValidEmail(email)) {
-      throw new Error(`Subscriber record ${index + 1} is invalid.`);
+      throw new ImportError(`Subscriber record ${index + 1} is invalid.`);
     }
   }
 }
@@ -71,7 +75,7 @@ function validateStagingDatabase(databaseUrl) {
   try {
     parsedUrl = new URL(databaseUrl);
   } catch {
-    throw new Error("DATABASE_URL is not a valid MySQL URL.");
+    throw new ImportError("DATABASE_URL is not a valid MySQL URL.");
   }
 
   if (
@@ -80,7 +84,9 @@ function validateStagingDatabase(databaseUrl) {
     parsedUrl.port !== "3306" ||
     parsedUrl.pathname !== "/portfolio_test"
   ) {
-    throw new Error("Legacy imports are restricted to the disposable staging database.");
+    throw new ImportError(
+      "Legacy imports are restricted to the disposable staging database.",
+    );
   }
 }
 
@@ -145,7 +151,7 @@ async function replaceImportedData(connection, snapshot) {
       Number(accountCount) !== snapshot.accounts.length ||
       Number(subscriberCount) !== snapshot.subscribers.length
     ) {
-      throw new Error("Imported row counts do not match the snapshot.");
+      throw new ImportError("Imported row counts do not match the snapshot.");
     }
 
     await connection.commit();
@@ -175,11 +181,11 @@ async function replaceImportedData(connection, snapshot) {
 async function main() {
   const snapshotPath = process.argv[2];
   if (!snapshotPath || process.argv.length !== 3) {
-    throw new Error("Provide one copied snapshot JSON file.");
+    throw new ImportError("Provide one copied snapshot JSON file.");
   }
 
   if (!process.env.DATABASE_URL) {
-    throw new Error("DATABASE_URL is required.");
+    throw new ImportError("DATABASE_URL is required.");
   }
 
   validateStagingDatabase(process.env.DATABASE_URL);
@@ -194,7 +200,27 @@ async function main() {
   }
 }
 
-main().catch(() => {
-  console.error("Legacy import failed. Source fields and credentials were not logged.");
+function describeSafeFailure(error) {
+  if (error instanceof ImportError) {
+    return error.message;
+  }
+  if (error instanceof SyntaxError) {
+    return "Snapshot JSON could not be parsed.";
+  }
+  if (
+    error &&
+    typeof error === "object" &&
+    "code" in error &&
+    typeof error.code === "string"
+  ) {
+    return `File or database operation failed (${error.code}).`;
+  }
+  return "An unexpected file or database error occurred.";
+}
+
+main().catch((error) => {
+  console.error(
+    `Legacy import failed: ${describeSafeFailure(error)} Source fields and credentials were not logged.`,
+  );
   process.exitCode = 1;
 });
