@@ -6,10 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "import:legacy": "node scripts/import-legacy-data.mjs",
     "typecheck": "tsc --noEmit",
     "test:e2e": "node tests/run-staging-tests.mjs"
   },
   "dependencies": {
+    "mysql2": "^3.24.6",
     "next": "16.4.3",
     "react": "19.3.1",
     "react-dom": "19.3.1"

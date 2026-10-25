@@ -134,6 +134,7 @@ try {
     "node",
     "--test",
     "/app/tests/staging-http.test.mjs",
+    "/app/tests/legacy-import.test.mjs",
   ]);
 } catch (error) {
   failure = error;

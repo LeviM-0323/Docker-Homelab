@@ -216,6 +216,7 @@ services:
       - portfolio-test
     build:
       context: ./config/portfolio-config
+      target: test-runner
     environment:
       DATABASE_URL: mysql://portfolio_test:portfolio-test-only@portfolio-test-db:3306/portfolio_test
       NEXT_TELEMETRY_DISABLED: "1"
