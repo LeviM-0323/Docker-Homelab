@@ -14,11 +14,36 @@ services:
       - ${TV}:/tv
       - ${MOVIES}:/movies
     restart: unless-stopped
+  
+  # jellyfin:
+  #   image: jellyfin/jellyfin
+  #   container_name: jellyfin
+  #   ports:
+  #     - 8096:8096/tcp
+  #     - 7359:7359/udp
+  #   environment:
+  #     - JELLYFIN_PublishedServerUrl=https://jellyfin.levimclean.world
+  #     - VIRTUAL_HOST=jellyfin.levimclean.world
+  #     - VIRTUAL_PORT=8096
+  #     - LETSENCRYPT_HOST=jellyfin.levimclean.world
+  #     - LETSENCRYPT_EMAIL=levi@levimclean.world
+  #   volumes:
+  #     - ${CONFIG}/jellyfin-config:/config
+  #     - ${CONFIG}/jellyfin-cache:/cache
+  #     - type: bind
+  #       source: ${MEDIA}
+  #       target: /media
+  #   restart: 'unless-stopped'
+  #   # Optional - may be necessary for docker healthcheck to pass if running in host network mode
+  #   extra_hosts:
+  #     - 'host.docker.internal:host-gateway'
+  #   networks:
+  #     - proxy
 
   sonarr:
     image: lscr.io/linuxserver/sonarr:latest
     container_name: sonarr
-    mem_limit: 256M
+    mem_limit: 512M
     # network_mode: "service:gluetun"
     environment:
       - PUID=1000
@@ -96,7 +121,7 @@ services:
     restart: unless-stopped
 
   doplarr:
-    image: lscr.io/linuxserver/doplarr:latest
+    image: lscr.io/linuxserver/doplarr:3.8.0
     container_name: doplarr
     mem_limit: 512M
     environment:
@@ -105,18 +130,49 @@ services:
       - TZ=${TZ}
       - DISCORD__TOKEN=${DOPLARR_TOKEN}
       - RADARR__API=${RADARR_TOKEN}
-      - RADARR__URL=http://10.0.0.201:7878
+      - RADARR__URL=http://192.168.2.254:7878
       - SONARR__API=${SONARR_TOKEN}
-      - SONARR__URL=http://10.0.0.201:8989
+      - SONARR__URL=http://192.168.2.254:8989
       - DISCORD__MAX_RESULTS=10 #optional
       - DISCORD__REQUESTED_MSG_STYLE=:embed #optional
       - PARTIAL_SEASONS=false #optional
       - LOG_LEVEL=:info #optional
-    volumes:
-      - ${CONFIG}/doplarr-config:/config
     restart: unless-stopped
 
-#----------------------- DEVELOPMENT CONTAINERS -----------------#
+  seerr:
+    image: ghcr.io/seerr-team/seerr:latest
+    init: true
+    container_name: seerr
+    environment:
+      - LOG_LEVEL=debug
+      - TZ=${TZ}
+      - PORT=5055 #optional
+    ports:
+      - 5055:5055
+    volumes:
+      - ${CONFIG}/seerr-config:/app/config
+    restart: unless-stopped
+
+  # qbittorrent:
+  #   image: lscr.io/linuxserver/qbittorrent:latest
+  #   container_name: qbittorrent
+  #   mem_limit: 1024M
+  #   environment:
+  #     - PUID=1000
+  #     - PGID=1000
+  #     - TZ=${TZ}
+  #     - WEBUI_PORT=8084
+  #     - TORRENTING_PORT=6881
+  #   volumes:
+  #     - ${CONFIG}/qbittorrent-config:/config
+  #     - ${MEDIA}:/media
+  #   ports:
+  #     - 8084:8084
+  #     - 6881:6881
+  #     - 6881:6881/udp
+  #   restart: unless-stopped
+
+  #----------------------- DEVELOPMENT CONTAINERS -----------------#
   nginx:
     image: lscr.io/linuxserver/nginx:latest
     container_name: nginx
@@ -180,37 +236,6 @@ services:
         condition: service_started
     networks:
       - proxy
-      - db_network
-
-  acme-companion:
-    image: nginxproxy/acme-companion
-    container_name: acme-companion
-    mem_limit: 128M
-    depends_on:
-      - nginx-proxy
-    environment:
-      - DEFAULT_EMAIL=aidanmclean111@gmail.com
-      - NGINX_PROXY_CONTAINER=nginx-proxy
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ${CONFIG}/nginx-proxy/certs:/etc/nginx/certs
-      - ${CONFIG}/nginx-proxy/vhost:/etc/nginx/vhost.d
-      - ${CONFIG}/nginx-proxy/html:/usr/share/nginx/html
-    restart: unless-stopped
-    networks:
-      - db_network
-      - proxy
-
-  mysql:
-    image: mysql
-    container_name: mysql
-    mem_limit: 512M
-    restart: unless-stopped
-    environment:
-      - MYSQL_ROOT_PASSWORD=123
-    volumes:
-      - mysql_data:/var/lib/mysql
-    networks:
       - db_network
 
   portfolio-e2e:
@@ -280,20 +305,75 @@ services:
       - portfolio_test
     restart: "no"
 
+  acme-companion:
+    image: nginxproxy/acme-companion
+    container_name: acme-companion
+    mem_limit: 128M
+    depends_on:
+      - nginx-proxy
+    environment:
+      - DEFAULT_EMAIL=aidanmclean111@gmail.com
+      - NGINX_PROXY_CONTAINER=nginx-proxy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${CONFIG}/nginx-proxy/certs:/etc/nginx/certs
+      - ${CONFIG}/nginx-proxy/vhost:/etc/nginx/vhost.d
+      - ${CONFIG}/nginx-proxy/html:/usr/share/nginx/html
+    restart: unless-stopped
+    networks:
+      - db_network
+      - proxy
+
+  mysql:
+    image: mysql
+    container_name: mysql
+    mem_limit: 512M
+    user: "1000:1000"
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=123
+    volumes:
+      - ${CONFIG}/mysql-config:/var/lib/mysql
+    networks:
+      - db_network
+
+  mariadb:
+    image: mariadb
+    container_name: mariadb
+    mem_limit: 512M
+    ports:
+      - "3307:3306"
+    user: "1000:1000"
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=123
+    volumes:
+      - ${CONFIG}/mariadb-config:/var/lib/mysql
+    networks:
+      - db_network
+
+  adminer:
+    image: adminer
+    container_name: adminer
+    mem_limit: 128M
+    ports:
+      - "8889:8080"
+    restart: unless-stopped
+    networks:
+      - db_network
+
   levibot:
     container_name: levibot
     build: ${CONFIG}/discord-bot
     mem_limit: 256M
     environment:
       - TZ=${TZ}
-    volumes:
-      - ${CONFIG}/discord-bot:/usr/src/app
     restart: unless-stopped
     labels:
       - com.centurylinklabs.watchtower.enable=false
 
   muse:
-    image: ghcr.io/museofficial/muse:pr-1256 # pr-1256
+    image: ghcr.io/museofficial/muse:latest # pr-1256
     container_name: music_bot
     mem_limit: 256M
     restart: unless-stopped
@@ -314,68 +394,75 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=${TZ}
-      - RATE_LIMIT=false 
+      - RATE_LIMIT=false
     ports:
       - 6969:3000
 
-  n8n:
-    image: n8nio/n8n:latest
-    container_name: n8n
-    mem_limit: 1024M
-    environment:
-      - N8N_HOST=n8n
-      - N8N_PORT=5678
-      - N8N_TRUST_PROXY=true
-      - NODE_ENV=production
-      - N8N_BASIC_AUTH_ACTIVE=true
-      - N8N_BASIC_AUTH_USER=admin
-      - N8N_BASIC_AUTH_PASSWORD=123
-      - DB_SQLITE_VACUUM_ON_STARTUP=true
-      - DB_SQLITE_POOL_SIZE=5
-      - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
-      - N8N_GIT_NODE_DISABLE_BARE_REPOS=true
-      - GENERIC_TIMEZONE=${TZ}
-      - TZ=${TZ}
-    volumes:
-      - ${CONFIG}/n8n-config:/home/node/.n8n
-    ports:
-      - 5678:5678
-    restart: unless-stopped
-    networks:
-      - db_network
+  # n8n:
+  #   image: n8nio/n8n:latest
+  #   container_name: n8n
+  #   mem_limit: 1024M
+  #   environment:
+  #     - N8N_HOST=n8n
+  #     - N8N_PORT=5678
+  #     - N8N_TRUST_PROXY=true
+  #     - NODE_ENV=production
+  #     - N8N_BASIC_AUTH_ACTIVE=true
+  #     - N8N_BASIC_AUTH_USER=admin
+  #     - N8N_BASIC_AUTH_PASSWORD=123
+  #     - DB_SQLITE_VACUUM_ON_STARTUP=true
+  #     - DB_SQLITE_POOL_SIZE=5
+  #     - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+  #     - N8N_GIT_NODE_DISABLE_BARE_REPOS=true
+  #     - GENERIC_TIMEZONE=${TZ}
+  #     - TZ=${TZ}
+  #   volumes:
+  #     - ${CONFIG}/n8n-config:/home/node/.n8n
+  #   ports:
+  #     - 5678:5678
+  #   restart: unless-stopped
+  #   networks:
+  #     - db_network
 
-  aig:
-    build: ${CONFIG}/aig-config
-    container_name: aig
-    labels:
-      - "com.centurylinklabs.watchtower.enable=false"
-    mem_limit: 64M
-    environment:
-      - BASE_URL=https://aig.levimclean.me
-    ports:
-      - "1255:1255"
-    volumes:
-      - ${CONFIG}/aig-config/images:/app/images
-    restart: unless-stopped
-  
-  wordpress:
-    image: wordpress:latest
-    container_name: wordpress
-    mem_limit: 256M
-    environment:
-      - WORDPRESS_DB_HOST=mysql:3306
-      - WORDPRESS_DB_USER=root
-      - WORDPRESS_DB_PASSWORD=123
-      - WORDPRESS_DB_NAME=wordpress_db
-      - TZ=${TZ}
-    volumes:
-      - ${CONFIG}/wordpress-config:/var/www/html
-      - ${CONFIG}/wordpress-config/php.ini:/usr/local/etc/php/conf.d/php.ini:ro
-    ports:
-      - 8080:80
-    restart: unless-stopped
-    networks:
-      - db_network
+  # aig:
+  #   build: ${CONFIG}/aig-config
+  #   container_name: aig
+  #   labels:
+  #     - "com.centurylinklabs.watchtower.enable=false"
+  #   mem_limit: 64M
+  #   environment:
+  #     - BASE_URL=https://aig.levimclean.world
+  #   ports:
+  #     - "1255:1255"
+  #   volumes:
+  #     - ${CONFIG}/aig-config/images:/app/images
+  #   restart: unless-stopped
+
+  # wordpress:
+  #   image: wordpress:latest
+  #   container_name: wordpress
+  #   mem_limit: 256M
+  #   environment:
+  #     - WORDPRESS_DB_HOST=mysql:3306
+  #     - WORDPRESS_DB_USER=root
+  #     - WORDPRESS_DB_PASSWORD=123
+  #     - WORDPRESS_DB_NAME=wordpress_db
+  #     - TZ=${TZ}
+  #     - WORDPRESS_HOME=https://blog.levimclean.world
+  #     - WORDPRESS_SITEURL=https://blog.levimclean.world
+  #     - WORDPRESS_CONFIG_EXTRA=define('FORCE_SSL_ADMIN', true);
+  #     - VIRTUAL_HOST=blog.levimclean.world
+  #     - LETSENCRYPT_HOST=blog.levimclean.world
+  #     - LETSENCRYPT_EMAIL=levi@levimclean.world
+  #   volumes:
+  #     - ${CONFIG}/wordpress-config:/var/www/html
+  #     - ${CONFIG}/wordpress-config/php.ini:/usr/local/etc/php/conf.d/php.ini:ro
+  #   expose:
+  #     - "80"
+  #   restart: unless-stopped
+  #   networks:
+  #     - db_network
+  #     - proxy
 
   gitea:
     image: gitea/gitea:latest
@@ -384,13 +471,21 @@ services:
       - USER_UID=1000
       - USER_GID=1000
       - TZ=${TZ}
-      - GITEA__server__ROOT_URL=https://git.levimclean.me/
+      - GITEA__server__ROOT_URL=https://git.levimclean.world/
+      - VIRTUAL_HOST=git.levimclean.world
+      - VIRTUAL_PORT=3000
+      - LETSENCRYPT_HOST=git.levimclean.world
+      - LETSENCRYPT_EMAIL=levi@levimclean.world
+      - CLIENT_MAX_BODY_SIZE=0
     mem_limit: 1G
     restart: unless-stopped
     volumes:
       - ${CONFIG}/gitea-config:/data
+    expose:
+      - "3000"
     networks:
       - db_network
+      - proxy
 
   # pythonapp:
   #   container_name: python_app
@@ -430,7 +525,7 @@ services:
   #   restart: unless-stopped
   #   labels:
   #     - com.centurylinklabs.watchtower.enable=false
-  
+
   # yt-archiver:
   #   labels:
   #     - "com.centurylinklabs.watchtower.enable=false"
@@ -448,78 +543,79 @@ services:
   #   ports:
   #     - 7654:7654
   #   restart: unless-stopped
-  ufcstreamer:
-    build: ${CONFIG}/ufcstreamer-config
-    container_name: ufcstreamer
-    mem_limit: 64M
-    environment:
-      - TZ=${TZ}
-    ports:
-      - "8085:8080"
-    restart: unless-stopped
-    labels:
-      - com.centurylinklabs.watchtower.enable=false
 
-#----------------- INFRASTRUCTURE CONTAINERS --------------------#
+  # ufcstreamer:
+  #   build: ${CONFIG}/ufcstreamer-config
+  #   container_name: ufcstreamer
+  #   mem_limit: 64M
+  #   environment:
+  #     - TZ=${TZ}
+  #   ports:
+  #     - "8085:8080"
+  #   restart: unless-stopped
+  #   labels:
+  #     - com.centurylinklabs.watchtower.enable=false
+
+  #----------------- INFRASTRUCTURE CONTAINERS --------------------#
   homepage:
     image: ghcr.io/gethomepage/homepage:latest
     container_name: homepage
     mem_limit: 256M
     environment:
       PUID: 1000
-      PGID: 1000
+      PGID: 986
       HOMEPAGE_ALLOWED_HOSTS: "*"
       TZ: ${TZ}
     ports:
       - 3000:3000
     volumes:
       - ${CONFIG}/homepage-config:/app/config
-      - ${CONFIG}/homepage-config/images:/app/public/images # optional, for images 
-    restart: unless-stopped
-  
-  pihole:
-    container_name: pihole
-    hostname: levi-mint
-    image: pihole/pihole:latest
-    mem_limit: 256m
-    ports:
-      - "53:53/tcp"
-      - "53:53/udp"
-      - "8083:80/tcp"
-      - "4443:443/tcp"
-      - "67:67/udp"
-    environment:
-      TZ: ${TZ}
-      FTLCONF_webserver_api_password: ${PIHOLE_PASSWORD}
-      FTLCONF_dns_listeningMode: 'ALL'
-    volumes:
-      - '${CONFIG}/pihole-config:/etc/pihole'
-    cap_add:
-      - NET_ADMIN
-      - SYS_NICE
-    restart: unless-stopped
-    labels:
-      - com.centurylinklabs.watchtower.enable=false
-
-  filebrowser:
-    image: filebrowser/filebrowser
-    container_name: filebrowser
-    ports:
-      - "8082:80"
-    mem_limit: 64M
-    volumes:
-      - ${MEDIA}:/srv/media
-      - ${CONFIG}:/srv/config
-      - /mnt/SSD/Yarr/Windows Games:/srv/yarr
-      - ${CONFIG}/filebrowser-config:/config
-      - ${CONFIG}/filebrowser-config:/database
-    labels:
-      - com.centurylinklabs.watchtower.enable=false
+      - ${CONFIG}/homepage-config/images:/app/public/images # optional, for images
+      - /var/run/docker.sock:/var/run/docker.sock # optional, for docker stats widget
     restart: unless-stopped
 
-  diskWake:
+  # pihole:
+  #   container_name: pihole
+  #   hostname: levi-mint
+  #   image: pihole/pihole:latest
+  #   mem_limit: 256m
+  #   ports:
+  #     - "53:53/tcp"
+  #     - "53:53/udp"
+  #     - "8083:80/tcp"
+  #     - "4443:443/tcp"
+  #     - "67:67/udp"
+  #   environment:
+  #     TZ: ${TZ}
+  #     FTLCONF_webserver_api_password: ${PIHOLE_PASSWORD}
+  #     FTLCONF_dns_listeningMode: 'ALL'
+  #   volumes:
+  #     - '${CONFIG}/pihole-config:/etc/pihole'
+  #   cap_add:
+  #     - NET_ADMIN
+  #     - SYS_NICE
+  #   restart: unless-stopped
+  #   labels:
+  #     - com.centurylinklabs.watchtower.enable=false
+
+  # filebrowser:
+  #   image: filebrowser/filebrowser
+  #   container_name: filebrowser
+  #   ports:
+  #     - "8082:80"
+  #   mem_limit: 64M
+  #   volumes:
+  #     - ${MEDIA}:/srv/media
+  #     - ${CONFIG}:/srv/config
+  #     - /mnt/SSD/Yarr/Windows Games:/srv/yarr
+  #     - ${CONFIG}/filebrowser-config:/config
+  #     - ${CONFIG}/filebrowser-config:/database
+  #   labels:
+  #     - com.centurylinklabs.watchtower.enable=false
+  #   restart: unless-stopped
+
+  diskwake:
     container_name: diskWake
-    image: diskwake:latest
     build: ${CONFIG}/diskwake-config
     mem_limit: 64M
     environment:
@@ -542,10 +638,27 @@ services:
     ports:
       - "61208:61208"
     volumes:
-      - ${CONFIG}/glances-config:/glances/conf
       - /var/run/docker.sock:/var/run/docker.sock
       - /etc/os-release:/etc/os-release:ro
     restart: unless-stopped
+
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   container_name: ollama
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ${CONFIG}/ollama-config:/root/.ollama
+  #   restart: unless-stopped
+
+  # openwebui:
+  #   image: ghcr.io/open-webui/open-webui:main
+  #   container_name: openwebui
+  #   ports:
+  #     - "8760:8080"
+  #   volumes:
+  #     - ${CONFIG}/openwebui-config:/app/backend/data
+  #   restart: unless-stopped
 
   cloudflared:
     image: cloudflare/cloudflared:latest
@@ -556,6 +669,16 @@ services:
     environment:
       - TUNNEL_TOKEN=${CLOUDFLARE_TOKEN}
   
+  cloudflared-ddns:
+    image: oznu/cloudflare-ddns:latest
+    container_name: cloudflared-ddns
+    mem_limit: 128M
+    restart: unless-stopped
+    environment:
+      - API_KEY=${CLOUDFLARE_TOKEN2}
+      - ZONE=levimclean.world
+      - TZ=${TZ}
+
   wireguard:
     image: lscr.io/linuxserver/wireguard:latest
     container_name: wireguard
@@ -583,10 +706,9 @@ services:
     image: containrrr/watchtower
     container_name: watchtower
     mem_limit: 128M
+    network_mode: host
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    ports:
-      - 8001:8080
     environment:
       - TZ=${TZ}
       - WATCHTOWER_CLEANUP=true
@@ -597,115 +719,115 @@ services:
     restart: unless-stopped
     command: --schedule "0 0 4 * * *"
 
-  freshrss:
-    image: lscr.io/linuxserver/freshrss:latest
-    container_name: freshrss
-    mem_limit: 128M
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=${TZ}
-    volumes:
-      - ${CONFIG}/freshrss-config:/config
-    ports:
-      - "8088:80"
-    restart: unless-stopped
+  # freshrss:
+  #   image: lscr.io/linuxserver/freshrss:latest
+  #   container_name: freshrss
+  #   mem_limit: 128M
+  #   environment:
+  #     - PUID=1000
+  #     - PGID=1000
+  #     - TZ=${TZ}
+  #   volumes:
+  #     - ${CONFIG}/freshrss-config:/config
+  #   ports:
+  #     - "8088:80"
+  #   restart: unless-stopped
 
-  rss-bridge:
-    image: rssbridge/rss-bridge:latest
-    container_name: rss-bridge
-    mem_limit: 128M
-    environment:
-      - TZ=${TZ}
-    ports:
-      - "8089:80"
-    restart: unless-stopped
+  # rss-bridge:
+  #   image: rssbridge/rss-bridge:latest
+  #   container_name: rss-bridge
+  #   mem_limit: 128M
+  #   environment:
+  #     - TZ=${TZ}
+  #   ports:
+  #     - "8089:80"
+  #   restart: unless-stopped
 
-#--------------------- MONITORING CONTAINERS ---------------------#
-  grafana:
-    image: grafana/grafana-enterprise
-    mem_limit: 256M
-    container_name: grafana
-    volumes:
-      - ${CONFIG}/grafana-config:/var/lib/grafana
-    restart: unless-stopped
-    ports:
-      - '2233:3000'
+  #--------------------- MONITORING CONTAINERS ---------------------#
+  # grafana:
+  #   image: grafana/grafana-enterprise
+  #   mem_limit: 256M
+  #   container_name: grafana
+  #   volumes:
+  #     - ${CONFIG}/grafana-config:/var/lib/grafana
+  #   restart: unless-stopped
+  #   ports:
+  #     - '2233:3000'
 
-  loki:
-    image: grafana/loki:latest
-    container_name: loki
-    mem_limit: 256M
-    ports:
-      - "3100:3100"
-    volumes:
-      - ${CONFIG}/loki-config:/etc/loki
-    command: -config.file=/etc/loki/loki.yml
-    restart: unless-stopped
+  # loki:
+  #   image: grafana/loki:latest
+  #   container_name: loki
+  #   mem_limit: 256M
+  #   ports:
+  #     - "3100:3100"
+  #   volumes:
+  #     - ${CONFIG}/loki-config:/etc/loki
+  #   command: -config.file=/etc/loki/loki.yml
+  #   restart: unless-stopped
 
-  promtail:
-    image: grafana/promtail:latest
-    container_name: promtail
-    mem_limit: 256M
-    ports:
-      - "9080:9080"
-    volumes:
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - ${CONFIG}/promtail-config:/etc/promtail
-      - /var/log:/var/log
-      - /var/run/docker.sock:/var/run/docker.sock
-    command: -config.file=/etc/promtail/promtail.yml
-    restart: unless-stopped
+  # promtail:
+  #   image: grafana/promtail:latest
+  #   container_name: promtail
+  #   mem_limit: 256M
+  #   ports:
+  #     - "9080:9080"
+  #   volumes:
+  #     - /var/lib/docker/containers:/var/lib/docker/containers:ro
+  #     - ${CONFIG}/promtail-config:/etc/promtail
+  #     - /var/log:/var/log
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   command: -config.file=/etc/promtail/promtail.yml
+  #   restart: unless-stopped
 
-  prometheus:
-    image: prom/prometheus
-    mem_limit: 128M
-    container_name: prometheus
-    volumes:
-      - ${CONFIG}/prometheus-config/prometheus.yml:/etc/prometheus/prometheus.yml
-    ports:
-      - 9090:9090
-    restart: unless-stopped
+  # prometheus:
+  #   image: prom/prometheus
+  #   mem_limit: 128M
+  #   container_name: prometheus
+  #   volumes:
+  #     - ${CONFIG}/prometheus-config/prometheus.yml:/etc/prometheus/prometheus.yml
+  #   ports:
+  #     - 9090:9090
+  #   restart: unless-stopped
 
-  docker_stats_exporter:
-    image: wywywywy/docker_stats_exporter:latest
-    mem_limit: 128M
-    container_name: docker_stats_exporter
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    ports:
-      - "9487:9487"
-    restart: unless-stopped
+  # docker_stats_exporter:
+  #   image: wywywywy/docker_stats_exporter:latest
+  #   mem_limit: 128M
+  #   container_name: docker_stats_exporter
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   ports:
+  #     - "9487:9487"
+  #   restart: unless-stopped
 
-  node_exporter:
-    image: prom/node-exporter:latest
-    mem_limit: 64M
-    container_name: node_exporter
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-    command:
-      - --path.procfs=/host/proc
-      - --path.sysfs=/host/sys
-      - --path.rootfs=/rootfs
-      - --collector.filesystem.ignored-mount-points="^/(sys|proc|dev|host|etc)($$|/)"
-    ports:
-      - "9100:9100"
-    restart: unless-stopped
+  # node_exporter:
+  #   image: prom/node-exporter:latest
+  #   mem_limit: 64M
+  #   container_name: node_exporter
+  #   volumes:
+  #     - /proc:/host/proc:ro
+  #     - /sys:/host/sys:ro
+  #     - /:/rootfs:ro
+  #   command:
+  #     - --path.procfs=/host/proc
+  #     - --path.sysfs=/host/sys
+  #     - --path.rootfs=/rootfs
+  #     - --collector.filesystem.ignored-mount-points="^/(sys|proc|dev|host|etc)($$|/)"
+  #   ports:
+  #     - "9100:9100"
+  #   restart: unless-stopped
 
-  mc-monitor:
-    image: itzg/mc-monitor
-    mem_limit: 64M
-    container_name: mc-monitor
-    command: export-for-prometheus
-    ports:
-      - 7754:8080
-    environment:
-      EXPORT_SERVERS: mc
-      DEBUG: "true"
-    restart: unless-stopped
-  
+  # mc-monitor:
+  #   image: itzg/mc-monitor
+  #   mem_limit: 64M
+  #   container_name: mc-monitor
+  #   command: export-for-prometheus
+  #   ports:
+  #     - 7754:8080
+  #   environment:
+  #     EXPORT_SERVERS: mc
+  #     DEBUG: "true"
+  #   restart: unless-stopped
+
   dozzle:
     image: amir20/dozzle:latest
     mem_limit: 128M
@@ -720,63 +842,95 @@ services:
       # Uncomment to allow access to container shells. See https://dozzle.dev/guide/shell
       - DOZZLE_ENABLE_SHELL=true
     restart: unless-stopped
-  
-  actual_server:
-    image: actualbudget/actual-server:latest
-    container_name: actual
-    mem_limit: 256M
-    ports:
-      - "5006:5006"
-    volumes:
-      - ${CONFIG}/actual-config:/data
-    restart: unless-stopped
 
-#------------------------- MINECRAFT CONTAINERS -------------------#
-  mc:
-    image: itzg/minecraft-server
-    container_name: minecraft-server
-    mem_limit: 6g
-    environment:
-      # Required
-      EULA: "true"
-      TZ: "America/Toronto"
-      MEMORY: "6G"
-      UID: 1000
-      GID: 1000
-      # CurseForge Shit
-      TYPE: VANILLA
-      # TYPE: AUTO_CURSEFORGE
-      # CF_API_KEY: ${CURSEFORGE_TOKEN}
-      # CF_MODPACK_MANIFEST: /data/manifest.json # Custom Modpack Manifest Path
-      # CF_SLUG: "custom"
-      # CF_SLUG: the-pixelmon-modpack
-      # Server Configuration
-      MOTD: |
-        \u00A7k420 \u00A7r \u00A7eFUCKWITS SERVER UNITE (╯°□°)╯︵ ┻━┻ \u00A77\u00A7k420\u00A7r 
-        \u00A7k420\u00A7r \u00A75MINECRAFT \u00A76SERVER \u00A79LETSGOOOOOOOO \u00A7r\u00A7k420
-      ICON: ./icon.png
-      LEVEL: vanillaWorld # Change if moving to modded server (ModdedWorld, vanillaWorld, PixelmonWorld, etc)
-      SERVER_NAME: FUCKWITS SERVER UNITE (╯°□°)╯︵ ┻━┻
-      MAX_PLAYERS: 6
-      ENABLE_WHITELIST: "true"
-      WHITELIST: LeviM0323, Dheltaz, _ruasuar_, GiggleMaster237
-      RCON_PASSWORD: ${RCON_PASSWORD}
+  uptime-kuma:
+    image: louislam/uptime-kuma:2
+    mem_limit: 256M
+    restart: unless-stopped
+    container_name: uptime-kuma
+    volumes:
+      - ${CONFIG}/uptimeKuma-config:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock
     ports:
+      - "3001:3001"
+  
+  vaultwarden:
+    image: vaultwarden/server:latest
+    container_name: vaultwarden
+    restart: unless-stopped
+    environment:
+      DOMAIN: "https://vault.levimclean.world"
+      SIGNUPS_ALLOWED: "true"
+      ADMIN_TOKEN: ${VAULT_TOKEN}
+      VIRTUAL_HOST: vault.levimclean.world
+      VIRTUAL_PORT: 80
+      LETSENCRYPT_HOST: vault.levimclean.world
+      LETSENCRYPT_EMAIL: levi@levimclean.world
+    volumes:
+      - ${CONFIG}/vaultwarden-config:/data
+    networks:
+      - proxy
+
+  #------------------------- MINECRAFT CONTAINERS -------------------#
+  # mc:
+  #   image: itzg/minecraft-server
+  #   container_name: minecraft-server
+  #   mem_limit: 6g
+  #   environment:
+  #     # Required
+  #     EULA: "true"
+  #     TZ: "America/Toronto"
+  #     MEMORY: "6G"
+  #     UID: 1000
+  #     GID: 1000
+  #     # CurseForge Shit
+  #     TYPE: VANILLA
+  #     # TYPE: AUTO_CURSEFORGE
+  #     # CF_API_KEY: ${CURSEFORGE_TOKEN}
+  #     # CF_MODPACK_MANIFEST: /data/manifest.json # Custom Modpack Manifest Path
+  #     # CF_SLUG: "custom"
+  #     # CF_SLUG: the-pixelmon-modpack
+  #     # Server Configuration
+  #     MOTD: |
+  #       \u00A7k420 \u00A7r \u00A7eFUCKWITS SERVER UNITE (╯°□°)╯︵ ┻━┻ \u00A77\u00A7k420\u00A7r 
+  #       \u00A7k420\u00A7r \u00A75MINECRAFT \u00A76SERVER \u00A79LETSGOOOOOOOO \u00A7r\u00A7k420
+  #     ICON: ./icon.png
+  #     LEVEL: vanillaWorld # Change if moving to modded server (ModdedWorld, vanillaWorld, PixelmonWorld, etc)
+  #     SERVER_NAME: FUCKWITS SERVER UNITE (╯°□°)╯︵ ┻━┻
+  #     MAX_PLAYERS: 6
+  #     ENABLE_WHITELIST: "true"
+  #     WHITELIST: LeviM0323, Dheltaz, _ruasuar_, GiggleMaster237
+  #     RCON_PASSWORD: ${RCON_PASSWORD}
+  #   ports:
+  #     - "25565:25565"
+  #     - "25575:25575"
+  #   volumes:
+  #     - ${CONFIG}/minecraft-config:/data
+  #   stdin_open: true
+  #   tty: true
+  #   restart: unless-stopped
+
+  crafty:
+    image: registry.gitlab.com/crafty-controller/crafty-4:latest
+    container_name: crafty
+    mem_limit: 6G
+    environment:
+      - TZ=${TZ}
+    ports:
+      - "8443:8443"
       - "25565:25565"
       - "25575:25575"
     volumes:
-      - ${CONFIG}/minecraft-config:/data
-    stdin_open: true
-    tty: true
+      - ${CONFIG}/crafty-config/config:/crafty/app/config
+      - ${CONFIG}/crafty-config/backups:/crafty/backups
+      - ${CONFIG}/crafty-config/logs:/crafty/logs
+      - ${CONFIG}/crafty-config/servers:/crafty/servers
+      - ${CONFIG}/crafty-config/import:/crafty/import
     restart: unless-stopped
-
 #------------------------- VOLUMES & NETWORKS -------------------#
-volumes:
-  mysql_data:
-
 networks:
+  proxy:
   db_network:
     driver: bridge
   portfolio_test:
     internal: true
-  proxy:

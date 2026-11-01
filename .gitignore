@@ -15,6 +15,8 @@ config/portfolio-config/*
 !config/portfolio-config/next.config.ts
 !config/portfolio-config/package-lock.json
 !config/portfolio-config/package.json
+!config/portfolio-config/tests/
+!config/portfolio-config/tests/*.mjs
 !config/portfolio-config/tsconfig.json
 '$RECYCLE.BIN'/
 Other/
@@ -22,3 +24,11 @@ Other/
 .vscode/
 found.000/
 .git/
+AGENTS.md
+docs/
+!docs/
+docs/*
+!docs/architecture/
+docs/architecture/*
+!docs/architecture/website-modernization-plan.md
+!docs/architecture/website-modernization-spec.md
