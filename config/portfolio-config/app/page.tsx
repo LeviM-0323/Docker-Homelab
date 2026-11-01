@@ -33,10 +33,9 @@ export default function HomePage() {
           <a href="#about">About</a>
           <a href="#toolbox">Toolbox</a>
           <a href="#workbench">Workbench</a>
-          <a href="/login">Sign in</a>
         </nav>
-        <a className="header-contact" href="/contact.php">
-          Say hello <span aria-hidden="true">↗</span>
+        <a className="header-contact" href="/login">
+          Log in <span aria-hidden="true">↗</span>
         </a>
       </header>
 
@@ -51,7 +50,7 @@ export default function HomePage() {
             <p className="hero-intro">
               I&apos;m Levi. I like learning by building: writing software,
               wiring services together, and following a question until it turns
-              into something that works.
+              into something functional.
             </p>
             <div className="hero-actions">
               <a className="button-link" href="#workbench">
@@ -61,9 +60,6 @@ export default function HomePage() {
                 Or send me a note
               </a>
             </div>
-            <p className="hero-footnote">
-              Started as a Fanshawe college project. Still learning in public.
-            </p>
           </div>
 
           <aside className="field-note" aria-label="A note from Levi">
@@ -109,10 +105,6 @@ export default function HomePage() {
               how the pieces fit together—from a page in the browser to the
               services running behind it.
             </p>
-            <p>
-              I&apos;m still taking it one project and one rabbit hole at a
-              time. That part hasn&apos;t changed.
-            </p>
           </div>
         </section>
 
@@ -123,8 +115,7 @@ export default function HomePage() {
           </div>
           <div className="section-copy">
             <p>
-              Languages and tools I&apos;ve spent time with. Some are old
-              friends; some still send me to the docs.
+              Languages and tools I&apos;ve spent time with.
             </p>
             <ul className="tool-list" aria-label="Languages and tools">
               {tools.map((tool) => (
@@ -162,8 +153,7 @@ export default function HomePage() {
             </span>
           </article>
           <p className="workbench-caption">
-            More experiments will land here when they&apos;re ready. No
-            imaginary launch dates.
+            More experiments will land here when they&apos;re ready.
           </p>
         </section>
       </main>
@@ -176,12 +166,9 @@ export default function HomePage() {
           </p>
         </div>
         <div className="footer-links">
-          <a href="/resume.php">Resume page</a>
-          <a href="/resume/Levi_McLean_Resume.docx" download>
-            Resume (DOCX) <span aria-hidden="true">↓</span>
-          </a>
-          <a href="/contact.php">Contact page</a>
-          <a href="mailto:levi@levimclean.tech">levi@levimclean.tech</a>
+          <a href="/resume">Resume page</a>
+          <a href="/contact">Contact page</a>
+          <a href="mailto:levi@levimclean.world">levi@levimclean.world</a>
           <a
             href="https://github.com/LeviM-0323"
             target="_blank"

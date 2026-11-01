@@ -4,11 +4,11 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Levi McLean — Projects & Experiments",
   description:
-    "A personal corner of the internet for Levi McLean: projects, tinkering, and notes.",
+    "My personal corner of the internet: projects, tinkering, and notes.",
   openGraph: {
     title: "Levi McLean — Projects & Experiments",
     description:
-      "A personal corner of the internet for Levi McLean: projects, tinkering, and notes.",
+      "My personal corner of the internet: projects, tinkering, and notes.",
     type: "website",
   },
 };

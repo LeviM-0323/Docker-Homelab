@@ -3,7 +3,7 @@ import { SubpageFooter, SubpageHeader } from "../_components/subpage-chrome";
 
 export const metadata: Metadata = {
   title: "Resume — Levi McLean",
-  description: "View and download Levi McLean's resume.",
+  description: "View and download my resume.",
 };
 
 export default function ResumePage() {
@@ -15,7 +15,7 @@ export default function ResumePage() {
         <h1 className="route-title">Resume</h1>
         <p className="route-intro">
           A little more about my professional background. You can download my
-          current resume as a Word document below.
+          current resume as a PDF below.
         </p>
         <dl className="detail-list">
           <div>
@@ -47,12 +47,12 @@ export default function ResumePage() {
         <div className="route-actions">
           <a
             className="button-link"
-            href="/resume/Levi_McLean_Resume.docx"
+            href="/resume/Levi_McLean_Resume.pdf"
             download
           >
-            Download resume (DOCX) <span aria-hidden="true">↓</span>
+            Download resume (PDF) <span aria-hidden="true">↓</span>
           </a>
-          <a href="/contact.php">Contact me</a>
+          <a href="/contact">Contact me</a>
         </div>
       </main>
       <SubpageFooter />

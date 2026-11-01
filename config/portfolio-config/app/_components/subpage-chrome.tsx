@@ -13,8 +13,8 @@ export function SubpageHeader() {
       </a>
       <nav aria-label="Page navigation">
         <a href="/">Home</a>
-        <a href="/contact.php">Contact</a>
-        <a href="/resume.php">Resume</a>
+        <a href="/contact">Contact</a>
+        <a href="/resume">Resume</a>
       </nav>
     </header>
   );
@@ -25,8 +25,8 @@ export function SubpageFooter() {
     <footer className="site-footer subpage-footer">
       <p className="footer-note">A personal corner of the internet by Levi McLean.</p>
       <div className="footer-links">
-        <a href="/contact.php">Contact</a>
-        <a href="/resume.php">Resume</a>
+        <a href="/contact">Contact</a>
+        <a href="/resume">Resume</a>
         <a href="/">Home</a>
       </div>
     </footer>

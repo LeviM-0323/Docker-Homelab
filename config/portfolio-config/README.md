@@ -1,9 +1,9 @@
 # Personal website
 
-The Next.js application serves `levimclean.world` through the Compose-managed
-nginx-proxy and Let's Encrypt services. The PHP site is no longer routed through
-the public proxy. Account, email, and Energy Shop features have not been
-migrated and are unavailable from the new site.
+The Next.js application is now configured to serve `levimclean.world` through
+the existing nginx-proxy and Let's Encrypt services. The PHP site is no longer
+routed through the public proxy. The account, email, and Energy Shop features
+have not been migrated and are unavailable from the new site.
 
 ## Start the site
 

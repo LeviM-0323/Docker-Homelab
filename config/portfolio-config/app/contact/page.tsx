@@ -3,7 +3,7 @@ import { SubpageFooter, SubpageHeader } from "../_components/subpage-chrome";
 
 export const metadata: Metadata = {
   title: "Contact Levi McLean",
-  description: "Contact Levi McLean by phone, email, or GitHub.",
+  description: "Contact me by phone, email, or GitHub.",
 };
 
 export default function ContactPage() {
@@ -11,7 +11,7 @@ export default function ContactPage() {
     <>
       <SubpageHeader />
       <main className="route-main">
-        <p className="route-kicker">A LINE IS OPEN</p>
+        <p className="route-kicker">MY LINE IS OPEN</p>
         <h1 className="route-title">Contact Information</h1>
         <p className="route-intro">
           Have a question, an idea, or a good rabbit hole to recommend? Here
@@ -27,7 +27,7 @@ export default function ContactPage() {
           <div>
             <dt>Email</dt>
             <dd>
-              <a href="mailto:levi@levimclean.tech">levi@levimclean.tech</a>
+              <a href="mailto:levi@levimclean.world">levi@levimclean.world</a>
             </dd>
           </div>
           <div>
@@ -45,7 +45,7 @@ export default function ContactPage() {
         </dl>
         <p className="route-backlink">
           Looking for my background?{" "}
-          <a href="/resume.php">Visit the resume page.</a>
+          <a href="/resume">Visit the resume page.</a>
         </p>
       </main>
       <SubpageFooter />
