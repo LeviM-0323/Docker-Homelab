@@ -157,6 +157,7 @@ services:
       context: ./config/portfolio-config
     environment:
       NEXT_TELEMETRY_DISABLED: "1"
+      DATABASE_URL: ${PORTFOLIO_DATABASE_URL:-}
       VIRTUAL_HOST: "levimclean.world"
       VIRTUAL_PORT: "3000"
       LETSENCRYPT_HOST: "levimclean.world"
@@ -179,6 +180,7 @@ services:
         condition: service_started
     networks:
       - proxy
+      - db_network
 
   acme-companion:
     image: nginxproxy/acme-companion

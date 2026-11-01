@@ -33,6 +33,8 @@ transaction, and reports row counts without source fields or credentials.
 Existing account emails are marked verified. Recognized PHP bcrypt hashes are
 preserved; unrecognized formats are preserved with
 `password_reset_required = 1`.
+Compatible imported accounts can sign in through the app when it is configured
+to use this database; see [account sign-in](./account-sign-in.md).
 
 The current legacy subscriber file contains email addresses only, with no
 consent status or timestamp. Those entries are preserved in source order with

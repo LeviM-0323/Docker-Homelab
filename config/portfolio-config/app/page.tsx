@@ -33,6 +33,7 @@ export default function HomePage() {
           <a href="#about">About</a>
           <a href="#toolbox">Toolbox</a>
           <a href="#workbench">Workbench</a>
+          <a href="/login">Sign in</a>
         </nav>
         <a className="header-contact" href="/contact.php">
           Say hello <span aria-hidden="true">↗</span>

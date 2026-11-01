@@ -29,6 +29,7 @@ ENV HOSTNAME="0.0.0.0"
 
 FROM runtime-base AS test-runner
 COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/bcryptjs ./node_modules/bcryptjs
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/mysql2 ./node_modules/mysql2
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/aws-ssl-profiles ./node_modules/aws-ssl-profiles
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/generate-function ./node_modules/generate-function

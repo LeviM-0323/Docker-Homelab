@@ -133,8 +133,10 @@ try {
     "portfolio-e2e",
     "node",
     "--test",
+    "--test-concurrency=1",
     "/app/tests/staging-http.test.mjs",
     "/app/tests/legacy-import.test.mjs",
+    "/app/tests/staging-auth.test.mjs",
   ]);
 } catch (error) {
   failure = error;

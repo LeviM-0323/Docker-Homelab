@@ -103,6 +103,16 @@ async function replaceImportedData(connection, snapshot) {
   await connection.beginTransaction();
 
   try {
+    const [[{ sessionTableCount }]] = await connection.query(
+      `SELECT COUNT(*) AS sessionTableCount
+         FROM information_schema.tables
+        WHERE table_schema = DATABASE()
+          AND table_name = 'portfolio_sessions'`,
+    );
+    if (Number(sessionTableCount) > 0) {
+      await connection.execute("DELETE FROM portfolio_sessions");
+    }
+
     await connection.execute("DELETE FROM legacy_import_accounts");
     await connection.execute("DELETE FROM legacy_import_subscribers");
 
