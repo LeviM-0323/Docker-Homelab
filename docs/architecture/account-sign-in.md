@@ -3,7 +3,8 @@
 The sign-in flow uses records in `legacy_import_accounts`. It accepts a
 username or email address and a PHP-compatible bcrypt password hash. Accounts
 with unsupported hashes, unverified addresses, or `password_reset_required`
-set cannot sign in.
+set cannot sign in. Existing PHP bcrypt hashes retain their 72-byte password
+behavior, including passwords longer than that limit.
 
 `POST /api/auth/login` returns the same credential error for an unknown account,
 wrong password, and account requiring a reset. Successful sign-in sets a

@@ -7,9 +7,11 @@ import test from "node:test";
 const baseUrl = "http://127.0.0.1:3000";
 const accountId = 900000001;
 const resetAccountId = 900000002;
+const longPasswordAccountId = 900000003;
 const username = "auth-fixture";
 const email = "auth-fixture@example.test";
 const password = "fixture-password-for-tests";
+const longPassword = "a".repeat(80);
 
 async function login(identifier, submittedPassword) {
   return fetch(`${baseUrl}/api/auth/login`, {
@@ -33,6 +35,7 @@ function sessionCookie(response) {
 test("an imported account can sign in by username or email and access its account", async () => {
   const connection = await mysql.createConnection(process.env.DATABASE_URL);
   const passwordHash = await bcrypt.hash(password, 10);
+  const longPasswordHash = await bcrypt.hash(longPassword.slice(0, 72), 10);
   const sessionCookies = [];
 
   try {
@@ -47,6 +50,23 @@ test("an imported account can sign in by username or email and access its accoun
          email_verified = 1,
          password_reset_required = 0`,
       [accountId, username, email, passwordHash],
+    );
+    await connection.execute(
+      `INSERT INTO legacy_import_accounts
+        (legacy_id, username, email, password_hash, email_verified, password_reset_required)
+       VALUES (?, ?, ?, ?, 1, 0)
+       ON DUPLICATE KEY UPDATE
+         username = VALUES(username),
+         email = VALUES(email),
+         password_hash = VALUES(password_hash),
+         email_verified = 1,
+         password_reset_required = 0`,
+      [
+        longPasswordAccountId,
+        "long-password-fixture",
+        "long-password-fixture@example.test",
+        longPasswordHash,
+      ],
     );
 
     for (const identifier of [username, email]) {
@@ -64,6 +84,18 @@ test("an imported account can sign in by username or email and access its accoun
         email,
       });
     }
+
+    const longPasswordResponse = await login(
+      "long-password-fixture",
+      longPassword,
+    );
+    assert.equal(longPasswordResponse.status, 200);
+    sessionCookies.push(sessionCookie(longPasswordResponse));
+    const longPasswordAccount = await fetch(`${baseUrl}/api/account`, {
+      headers: { cookie: sessionCookies.at(-1) },
+    });
+    assert.equal(longPasswordAccount.status, 200);
+    assert.equal((await longPasswordAccount.json()).id, longPasswordAccountId);
 
     const unauthenticated = await fetch(`${baseUrl}/api/account`);
     assert.equal(unauthenticated.status, 401);
@@ -83,8 +115,8 @@ test("an imported account can sign in by username or email and access its accoun
       }
     }
     await connection.execute(
-      "DELETE FROM legacy_import_accounts WHERE legacy_id IN (?, ?)",
-      [accountId, resetAccountId],
+      "DELETE FROM legacy_import_accounts WHERE legacy_id IN (?, ?, ?)",
+      [accountId, resetAccountId, longPasswordAccountId],
     );
     await connection.end();
   }

@@ -115,9 +115,7 @@ export async function authenticate(identifier: string, password: string) {
     account && isSupportedPasswordHash(account.password_hash)
       ? account.password_hash.replace(/^\$2y\$/, "$2b$")
       : await getDummyPasswordHash();
-  const passwordMatches =
-    Buffer.byteLength(password, "utf8") <= 72 &&
-    (await bcrypt.compare(password, validHash));
+  const passwordMatches = await bcrypt.compare(password, validHash);
 
   if (
     !account ||
